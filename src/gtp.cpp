@@ -313,7 +313,8 @@ int CallGTP(){
 #else
 			double resign_value = 0.1;
 #endif
-			if(b.IsMimicGo()){ next_move = EBVCNT/2; }
+			// Play tygen only with mimic mode on.
+			if(play_mimic && b.IsMimicGo()) { next_move = EBVCNT/2; }
 			else if(win_rate < resign_value){
 
 				// 1000回プレイアウトして本当に負けているか確認する
@@ -334,25 +335,24 @@ int CallGTP(){
 
 			// d. ログファイルを更新する. Update logs.
 			sgf.AddMove(next_move);
-			if(!is_worker){
+			if (!is_worker) {
 
 				PrintBoard(b, next_move);
-				if(tree.log_file != NULL){
+				if (tree.log_file != NULL) {
 					PrintBoard(b, next_move, tree.log_file);
 					//PrintOccupancy(tree.stat.game, tree.stat.owner, tree.log_file);
 				}
 
-				if(save_log){
+				if (save_log) {
 					std::stringstream ss;
 					ss << working_dir << "log" << spl_str << file_cnt << ".sgf";
 					sgf.ExportData(ss.str());
 				}
 
-				if(b.prev_move[b.her] == PASS && b.prev_move[b.my] == PASS){
-					if(tree.left_time > 5 || tree.byoyomi != 0){
+				if (b.prev_move[b.her] == PASS && b.prev_move[b.my] == PASS) {
+					if (tree.left_time > 5 || tree.byoyomi != 0) {
 						tree.PrintResult(b);
-					}
-					else{
+					} else {
 						SendGTP("= pass\n\n");
 						tree.PrintResult(b);
 						continue;

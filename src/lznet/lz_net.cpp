@@ -1005,11 +1005,15 @@ void Network::tensor_to_plane(const FeedTensor ft, NNPlanes& planes) {
     BoardPlane& black_to_move = planes[2 * INPUT_MOVES];
     BoardPlane& white_to_move = planes[2 * INPUT_MOVES + 1];
 
-    const auto blacks_move = (ft.feature[0][COLOR] == 1);
-    const auto black_offset = blacks_move ? 0 : INPUT_MOVES;
-    const auto white_offset = blacks_move ? INPUT_MOVES : 0;
-    const auto gmz_black_offset = blacks_move ? 0 : 1;
-    const auto gmz_white_offset = blacks_move ? 1 : 0;
+    const bool blacks_move = (ft.feature[0][COLOR] == 1);
+    const int black_offset = blacks_move ? 0 : INPUT_MOVES;
+    const int white_offset = blacks_move ? INPUT_MOVES : 0;
+    const int gmz_black_offset = blacks_move ? 0 : 1;
+    const int gmz_white_offset = blacks_move ? 1 : 0;
+
+    // myprintf("Black to move: %d\n", blacks_move);
+    // myprintf("black_offset: %d\n", black_offset);
+    // myprintf("white_offset: %d\n", white_offset);
 
     if (blacks_move) {
         black_to_move.set();
@@ -1019,10 +1023,10 @@ void Network::tensor_to_plane(const FeedTensor ft, NNPlanes& planes) {
 
     for (int j = 0; j < BVCNT; ++j) {
         for (int k = 0; k < INPUT_MOVES; ++k) {
-            if (ft.feature[j][gmz_black_offset + k] != 0.0) {
+            if (ft.feature[j][gmz_black_offset + 2*k] != 0.0) {
                 planes[black_offset + k][j] = true;
             }
-            if (ft.feature[j][gmz_white_offset + k] != 0.0) {
+            if (ft.feature[j][gmz_white_offset + 2*k] != 0.0) {
                 planes[white_offset + k][j] = true;
             }
         }
@@ -1030,8 +1034,41 @@ void Network::tensor_to_plane(const FeedTensor ft, NNPlanes& planes) {
 }
 
 
-void Network::debug_heatmap(Prob move_prob) {
-    for (int i = 0; i < 19; ++i) {
+void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
+    // for (int a = 0; a < 17; ++a) {
+    //     myprintf("Tensor %d\n", a);
+    //     for (int b = 17; b >= 0; --b) {
+    //         for (int c =0; c < 19; ++c) {
+    //             float mv = ft.feature[b*19+c][a];
+    //             if (mv > 0.1) {
+    //                 myprintf("\033[41m%4.1f\033[0m", mv);
+    //             } else {
+    //                 myprintf("%4.1f", mv);
+    //             }
+    //         }
+    //         myprintf("\n");
+    //     }
+    //     myprintf("\n");
+    // }
+    // NNPlanes planes;
+    // tensor_to_plane(ft, planes);
+    // for (int a = 0; a < 18; ++a) {
+    //     myprintf("Plane %d\n", a);
+    //     for (int b = 17; b >= 0; --b) {
+    //         for (int c =0; c < 19; ++c) {
+    //             float mv = planes[a][b*19+c];
+    //             if (mv > 0.1) {
+    //                 myprintf("\033[41m%4.1f\033[0m", mv);
+    //             } else {
+    //                 myprintf("%4.1f", mv);
+    //             }
+    //         }
+    //         myprintf("\n");
+    //     }
+    //     myprintf("\n");
+    // }
+    myprintf("Rotated Heatmap\n");
+    for (int i = 18; i >= 0; --i) {
         for (int j = 0; j < 19; ++j) {
             float mp = move_prob[rtoe[i * 19 + j]];
             if (mp > 0.05) {

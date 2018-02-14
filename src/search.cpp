@@ -938,8 +938,8 @@ std::string CoordinateString(int v){
  *  ’Tõ‚ğŒJ‚è•Ô‚µÅ‘Pè‚ğ‹‚ß‚é
  *  Repeat searching for the best move.
  */
-int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
-						bool is_errout, bool is_ponder)
+int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
+					 bool is_errout, bool is_ponder)
 {
 
 	// 1. root node‚ğXV. Update root node.
@@ -996,7 +996,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 	bool use_rollout = (lambda != 1.0);
 
 	// 5. root node‚ª–¢•]‰¿‚Ì‚Æ‚«AŠm—¦•ª•z‚ğ•]‰¿‚·‚é
-	//    	If the root node is not evaluated, evaluate the probability.
+	//    If the root node is not evaluated, evaluate the probability.
 	if(!pn->is_policy_eval){
 		std::vector<std::array<double,EBVCNT>> prob_list;
 		FeedTensor ft;
@@ -1011,6 +1011,7 @@ int Tree::SearchTree(	Board& b, double time_limit, double& win_rate,
 			Network::get_policy_moves(ft_list, prob_list, Network::Ensemble::DIRECT, cfg_sym_idx);
 		}
 		UpdateNodeProb(root_node_idx, prob_list[0]);
+		// Network::debug_heatmap(ft_list[0], prob_list[0]);
 	}
 
 	// 6. qƒm[ƒh‚ğ’Tõ‰ñ”‚ª‘½‚¢‡‚Éƒ\[ƒg

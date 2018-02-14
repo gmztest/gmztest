@@ -72,7 +72,7 @@ public:
                         std::vector<float>& output,
                         float temperature = 1.0f);
 
-    static void tensor_to_plane(const FeedTensor ft, NNPlanes& planes);
+    static void debug_heatmap(const FeedTensor ft, Prob move_prob);
 
 private:
     static std::pair<int, int> load_v1_network(std::ifstream& wtfile);
@@ -107,7 +107,7 @@ private:
 #endif
     static float get_value_internal(NNPlanes& planes, int rotation);
     static Prob get_policy_internal(const FeedTensor ft, NNPlanes& planes, int rotation);
-    static void debug_heatmap(Prob move_prob);
+    static void tensor_to_plane(const FeedTensor ft, NNPlanes& planes);
 };
 
 #endif
