@@ -1,0 +1,9 @@
+gmztest
+src/gmztest
+src/*.d
+src/*.o
+src/lznet/*.d
+src/lznet/*.o
+remotetest
+gmz_opencl_tuning
+
