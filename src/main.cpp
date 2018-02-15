@@ -111,6 +111,7 @@ void ReadConfiguration(int argc, char **argv){
 		else if(key == "weight file") cfg_weightsfile = val;
 		else if(key == "rollout") cfg_rollout = IsFlagOn(val);
 		else if(key == "full tune") cfg_sgemm_exhaustive = IsFlagOn(val);
+		else if(key == "debug") cfg_debug = IsFlagOn(val);
 		else{
 			std::cerr << "Unknown key: [" << key << "]" << std::endl;
 		}

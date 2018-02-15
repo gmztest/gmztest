@@ -1055,6 +1055,22 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
     // }
     NNPlanes planes;
     tensor_to_plane(ft, planes);
+    for (int a = 0; a < 18; ++a) {
+        myprintf("Plane %d\n", a);
+        for (int b = 18; b >= 0; --b) {
+            for (int c =0; c < 19; ++c) {
+                float mv = planes[a][b*19+c];
+                if (mv > 0.1) {
+                    myprintf("\033[41m%4.1f\033[0m", mv);
+                } else {
+                    myprintf("%4.1f", mv);
+                }
+            }
+            myprintf("\n");
+        }
+        myprintf("\n");
+    }
+
     Prob direct_heatmap = get_policy_internal(ft, planes, 0);
     myprintf("Direct Heatmap\n");
     for (int i = 18; i >= 0; --i) {
@@ -1069,21 +1085,6 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
         myprintf("\n");
     }
     myprintf("\n");
-    // for (int a = 0; a < 18; ++a) {
-    //     myprintf("Plane %d\n", a);
-    //     for (int b = 18; b >= 0; --b) {
-    //         for (int c =0; c < 19; ++c) {
-    //             float mv = planes[a][b*19+c];
-    //             if (mv > 0.1) {
-    //                 myprintf("\033[41m%4.1f\033[0m", mv);
-    //             } else {
-    //                 myprintf("%4.1f", mv);
-    //             }
-    //         }
-    //         myprintf("\n");
-    //     }
-    //     myprintf("\n");
-    // }
     myprintf("Rotated Heatmap\n");
     for (int i = 18; i >= 0; --i) {
         for (int j = 0; j < 19; ++j) {

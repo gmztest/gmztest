@@ -153,6 +153,7 @@ extern int cfg_worker_cnt;
 extern bool cfg_mimic;
 extern bool never_resign;
 extern bool cfg_rollout;
+extern bool cfg_debug;
 extern std::string resume_sgf_path;
 extern std::string pb_dir;
 extern std::string spl_str;

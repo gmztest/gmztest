@@ -28,6 +28,7 @@ bool cfg_mimic = false;
 bool never_resign = false;
 int cfg_sym_idx = 8;
 bool cfg_rollout = true;
+bool cfg_debug = false;
 std::string resume_sgf_path = "";
 std::string pb_dir = "";
 std::string cfg_weightsfile = "";
@@ -997,7 +998,7 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
 
 	// 5. root nodeが未評価のとき、確率分布を評価する
 	//    If the root node is not evaluated, evaluate the probability.
-	if(!pn->is_policy_eval){
+	if(!pn->is_policy_eval || cfg_debug){
 		std::vector<std::array<double,EBVCNT>> prob_list;
 		FeedTensor ft;
 		ft.Set(b, PASS);
@@ -1011,7 +1012,10 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
 			Network::get_policy_moves(ft_list, prob_list, Network::Ensemble::DIRECT, cfg_sym_idx);
 		}
 		UpdateNodeProb(root_node_idx, prob_list[0]);
-		// Network::debug_heatmap(ft_list[0], prob_list[0]);
+
+		if (cfg_debug) {
+			Network::debug_heatmap(ft_list[0], prob_list[0]);
+		}
 	}
 
 	// 6. 子ノードを探索回数が多い順にソート
@@ -1393,6 +1397,14 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 						Network::get_value_moves(ft_list, eval_list, Network::Ensemble::RANDOM_ROTATION);
 					} else {
 						Network::get_value_moves(ft_list, eval_list, Network::Ensemble::DIRECT, cfg_sym_idx);
+					}
+
+					// Value debug
+					if (cfg_debug) {
+						for (int i = 0; i < eval_cnt; ++i) {
+							printf(" got value:%5.2f", eval_list[i]);
+						}
+						printf("\n");
 					}
 				
 					// d. 上流ノードのvalue_winを全て更新する

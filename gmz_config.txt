@@ -19,7 +19,7 @@
 
 ### File settings ###
 # Use 'self match' mode on console for debug.
--self match =on
+-self match =off
 -save log =on
 -pb path =pb
 -resume sgf path =
@@ -34,4 +34,5 @@
 -weight file =weights.txt
 -rollout =on
 -full tune =off
+-debug =off
 
