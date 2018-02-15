@@ -901,9 +901,12 @@ Network::Prob Network::get_policy_internal(const FeedTensor ft,
     move_prob.fill(0.0);
 
     for (int j = 0; j < BVCNT; ++j) {
-        int v = rtoe[j];
-        int rot_idx = rotate_nn_idx_table[rotation][j];
-        float val = outputs[rot_idx];
+        // int v = rtoe[j];
+        // int rot_idx = rotate_nn_idx_table[rotation][j];
+        // float val = outputs[rot_idx];
+        // move_prob[v] = val;
+        int v = rtoe[rotate_nn_idx_table[rotation][j]];
+        float val = outputs[j];
         move_prob[v] = val;
 
         if(ft.feature[j][LADDERESC] != 0 && DistEdge(v) > 2) move_prob[v] *= 0.001;
@@ -1050,11 +1053,25 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
     //     }
     //     myprintf("\n");
     // }
-    // NNPlanes planes;
-    // tensor_to_plane(ft, planes);
+    NNPlanes planes;
+    tensor_to_plane(ft, planes);
+    Prob direct_heatmap = get_policy_internal(ft, planes, 0);
+    myprintf("Direct Heatmap\n");
+    for (int i = 18; i >= 0; --i) {
+        for (int j = 0; j < 19; ++j) {
+            float mp = direct_heatmap[rtoe[i * 19 + j]];
+            if (mp > 0.05) {
+                myprintf("\033[41m%4.1f\033[0m", mp);
+            } else {
+                myprintf("%4.1f", mp);
+            }
+        }
+        myprintf("\n");
+    }
+    myprintf("\n");
     // for (int a = 0; a < 18; ++a) {
     //     myprintf("Plane %d\n", a);
-    //     for (int b = 17; b >= 0; --b) {
+    //     for (int b = 18; b >= 0; --b) {
     //         for (int c =0; c < 19; ++c) {
     //             float mv = planes[a][b*19+c];
     //             if (mv > 0.1) {
