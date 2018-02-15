@@ -65,7 +65,7 @@ inline void ThreadPool::add_thread(std::function<void()> initializer) {
         for (;;) {
             std::function<void()> task;
             {
-                std::unique_lock<std::mutex> lock(m_mutex);
+                std::unique_lock < std::mutex> lock(m_mutex);
                 m_condvar.wait(lock, [this]{ return m_exit || !m_tasks.empty(); });
                 if (m_exit && m_tasks.empty()) {
                     return;
@@ -80,7 +80,7 @@ inline void ThreadPool::add_thread(std::function<void()> initializer) {
 
 inline void ThreadPool::initialize(size_t threads) {
     for (size_t i = 0; i < threads; i++) {
-        add_thread( [](){} /* null function */);
+        add_thread( []() {} /* null function */);
     }
 }
 
@@ -89,14 +89,14 @@ auto ThreadPool::add_task(F&& f, Args&&... args)
     -> std::future<typename std::result_of<F(Args...)>::type> {
     using return_type = typename std::result_of<F(Args...)>::type;
 
-    auto task = std::make_shared< std::packaged_task<return_type()> >(
+    auto task = std::make_shared< std::packaged_task < return_type()> >(
         std::bind(std::forward<F>(f), std::forward<Args>(args)...)
     );
 
     std::future<return_type> res = task->get_future();
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        m_tasks.emplace([task](){(*task)();});
+        std::unique_lock < std::mutex> lock(m_mutex);
+        m_tasks.emplace([task]() {(*task)();});
     }
     m_condvar.notify_one();
     return res;
@@ -104,7 +104,7 @@ auto ThreadPool::add_task(F&& f, Args&&... args)
 
 inline ThreadPool::~ThreadPool() {
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
+        std::unique_lock < std::mutex> lock(m_mutex);
         m_exit = true;
     }
     m_condvar.notify_all();

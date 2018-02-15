@@ -357,8 +357,8 @@
         cl::unmapSVM(inputB);
         cl::unmapSVM(output2);
 
-	    cl_int error;
-	    vectorAddKernel(
+        cl_int error;
+        vectorAddKernel(
             cl::EnqueueArgs(
                 cl::NDRange(numElements/2),
                 cl::NDRange(numElements/2)),
@@ -369,7 +369,7 @@
             3,
             aPipe,
             defaultDeviceQueue,
-		    error
+            error
             );
 
         cl::copy(outputBuffer, begin(output), end(output));
@@ -1587,13 +1587,13 @@ static cl_uint getVersion(const vector<char> &versionInfo)
     int highVersion = 0;
     int lowVersion = 0;
     int index = 7;
-    while(versionInfo[index] != '.' ) {
+    while (versionInfo[index] != '.' ) {
         highVersion *= 10;
         highVersion += versionInfo[index]-'0';
         ++index;
     }
     ++index;
-    while(versionInfo[index] != ' ' &&  versionInfo[index] != '\0') {
+    while (versionInfo[index] != ' ' &&  versionInfo[index] != '\0') {
         lowVersion *= 10;
         lowVersion += versionInfo[index]-'0';
         ++index;
@@ -1746,7 +1746,7 @@ protected:
 #if CL_HPP_MINIMUM_OPENCL_VERSION < 120
         if (device != NULL) {
             int version = getDevicePlatformVersion(device);
-            if(version > ((1 << 16) + 1)) {
+            if (version > ((1 << 16) + 1)) {
                 retVal = true;
             }
         }
@@ -1841,7 +1841,7 @@ protected:
 
     cl_int retain() const
     {
-        if( object_ != nullptr && referenceCountable_ ) {
+        if ( object_ != nullptr && referenceCountable_ ) {
             return ReferenceHandler<cl_type>::retain(object_);
         }
         else {
@@ -1931,7 +1931,7 @@ namespace detail {
 struct ImageFormat : public cl_image_format
 {
     //! \brief Default constructor - performs no initialization.
-    ImageFormat(){}
+    ImageFormat() {}
 
     //! \brief Initializing constructor.
     ImageFormat(cl_channel_order order, cl_channel_type type)
@@ -2342,7 +2342,7 @@ public:
         vector<Device>* devices) const
     {
         cl_uint n = 0;
-        if( devices == NULL ) {
+        if ( devices == NULL ) {
             return detail::errHandler(CL_INVALID_ARG_VALUE, __GET_DEVICE_IDS_ERR);
         }
         cl_int err = ::clGetDeviceIDs(object_, type, 0, NULL, &n);
@@ -2411,7 +2411,7 @@ public:
             cl_device_id * devices,
             cl_uint* num_devices);
 
-        if( devices == NULL ) {
+        if ( devices == NULL ) {
             return detail::errHandler(CL_INVALID_ARG_VALUE, __GET_DEVICE_IDS_ERR);
         }
 
@@ -2470,7 +2470,7 @@ public:
     {
         cl_uint n = 0;
 
-        if( platforms == NULL ) {
+        if ( platforms == NULL ) {
             return detail::errHandler(CL_INVALID_ARG_VALUE, __GET_PLATFORM_IDS_ERR);
         }
 
@@ -2658,7 +2658,7 @@ public:
         size_type numDevices = devices.size();
         vector<cl_device_id> deviceIDs(numDevices);
 
-        for( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
+        for ( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
             deviceIDs[deviceIndex] = (devices[deviceIndex])();
         }
 
@@ -3069,7 +3069,7 @@ public:
      */
     cl_int setCallback(
         cl_int type,
-        void (CL_CALLBACK * pfn_notify)(cl_event, cl_int, void *),		
+        void (CL_CALLBACK * pfn_notify)(cl_event, cl_int, void *),        
         void * user_data = NULL)
     {
         return detail::errHandler(
@@ -3258,7 +3258,7 @@ public:
      *  value - not the Memory class instance.
      */
     cl_int setDestructorCallback(
-        void (CL_CALLBACK * pfn_notify)(cl_mem, void *),		
+        void (CL_CALLBACK * pfn_notify)(cl_mem, void *),        
         void * user_data = NULL)
     {
         return detail::errHandler(
@@ -3721,13 +3721,13 @@ public:
         cl_int error;
 
         cl_mem_flags flags = 0;
-        if( readOnly ) {
+        if ( readOnly ) {
             flags |= CL_MEM_READ_ONLY;
         }
         else {
             flags |= CL_MEM_READ_WRITE;
         }
-        if( useHostPtr ) {
+        if ( useHostPtr ) {
             flags |= CL_MEM_USE_HOST_PTR;
         }
         
@@ -3735,7 +3735,7 @@ public:
 
         Context context = Context::getDefault(err);
 
-        if( useHostPtr ) {
+        if ( useHostPtr ) {
             object_ = ::clCreateBuffer(context(), flags, size, static_cast<DataType*>(&*startIterator), &error);
         } else {
             object_ = ::clCreateBuffer(context(), flags, size, 0, &error);
@@ -3746,7 +3746,7 @@ public:
             *err = error;
         }
 
-        if( !useHostPtr ) {
+        if ( !useHostPtr ) {
             error = cl::copy(startIterator, endIterator, *this);
             detail::errHandler(error, __CREATE_BUFFER_ERR);
             if (err != NULL) {
@@ -3849,7 +3849,7 @@ public:
         }
 
         return result;
-    }		
+    }        
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 110
 };
 
@@ -3885,8 +3885,8 @@ public:
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
         vector<cl_context_properties> props = context.getInfo<CL_CONTEXT_PROPERTIES>();
         cl_platform platform = -1;
-        for( int i = 0; i < props.size(); ++i ) {
-            if( props[i] == CL_CONTEXT_PLATFORM ) {
+        for ( int i = 0; i < props.size(); ++i ) {
+            if ( props[i] == CL_CONTEXT_PLATFORM ) {
                 platform = props[i+1];
             }
         }
@@ -6162,7 +6162,7 @@ public:
         const size_type numDevices = devices.size();
         
         // Catch size mismatch early and return
-        if(binaries.size() != numDevices) {
+        if (binaries.size() != numDevices) {
             error = CL_INVALID_VALUE;
             detail::errHandler(error, __CREATE_PROGRAM_WITH_BINARY_ERR);
             if (err != NULL) {
@@ -6187,11 +6187,11 @@ public:
 #endif // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
         
         vector<cl_device_id> deviceIDs(numDevices);
-        for( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
+        for ( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
             deviceIDs[deviceIndex] = (devices[deviceIndex])();
         }
 
-        if(binaryStatus) {
+        if (binaryStatus) {
             binaryStatus->resize(numDevices);
         }
         
@@ -6225,7 +6225,7 @@ public:
 
         size_type numDevices = devices.size();
         vector<cl_device_id> deviceIDs(numDevices);
-        for( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
+        for ( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
             deviceIDs[deviceIndex] = (devices[deviceIndex])();
         }
         
@@ -6298,7 +6298,7 @@ public:
         size_type numDevices = devices.size();
         vector<cl_device_id> deviceIDs(numDevices);
         
-        for( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
+        for ( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
             deviceIDs[deviceIndex] = (devices[deviceIndex])();
         }
 
@@ -6484,7 +6484,7 @@ inline Program linkProgram(
     cl_program programs[2] = { input1(), input2() };
 
     Context ctx = input1.getInfo<CL_PROGRAM_CONTEXT>(&error_local);
-    if(error_local!=CL_SUCCESS) {
+    if (error_local!=CL_SUCCESS) {
         detail::errHandler(error_local, __LINK_PROGRAM_ERR);
     }
 
@@ -6523,9 +6523,9 @@ inline Program linkProgram(
     }
     
     Context ctx;
-    if(inputPrograms.size() > 0) {
+    if (inputPrograms.size() > 0) {
         ctx = inputPrograms[0].getInfo<CL_PROGRAM_CONTEXT>(&error_local);
-        if(error_local!=CL_SUCCESS) {
+        if (error_local!=CL_SUCCESS) {
             detail::errHandler(error_local, __LINK_PROGRAM_ERR);
         }
     }
@@ -7943,7 +7943,7 @@ public:
         
         vector<cl_mem> localMemObjects(memObjects.size());
 
-        for( int i = 0; i < (int)memObjects.size(); ++i ) {
+        for ( int i = 0; i < (int)memObjects.size(); ++i ) {
             localMemObjects[i] = memObjects[i]();
         }
 
@@ -8509,19 +8509,19 @@ Buffer::Buffer(
     cl_int error;
 
     cl_mem_flags flags = 0;
-    if( readOnly ) {
+    if ( readOnly ) {
         flags |= CL_MEM_READ_ONLY;
     }
     else {
         flags |= CL_MEM_READ_WRITE;
     }
-    if( useHostPtr ) {
+    if ( useHostPtr ) {
         flags |= CL_MEM_USE_HOST_PTR;
     }
     
     size_type size = sizeof(DataType)*(endIterator - startIterator);
 
-    if( useHostPtr ) {
+    if ( useHostPtr ) {
         object_ = ::clCreateBuffer(context(), flags, size, static_cast<DataType*>(&*startIterator), &error);
     } else {
         object_ = ::clCreateBuffer(context(), flags, size, 0, &error);
@@ -8532,7 +8532,7 @@ Buffer::Buffer(
         *err = error;
     }
 
-    if( !useHostPtr ) {
+    if ( !useHostPtr ) {
         CommandQueue queue(context, 0, &error);
         detail::errHandler(error, __CREATE_BUFFER_ERR);
         if (err != NULL) {
@@ -8902,7 +8902,7 @@ inline cl_int copy( const CommandQueue &queue, IteratorType startIterator, Itera
     DataType *pointer = 
         static_cast<DataType*>(queue.enqueueMapBuffer(buffer, CL_TRUE, CL_MAP_WRITE, 0, byteLength, 0, 0, &error));
     // if exceptions enabled, enqueueMapBuffer will throw
-    if( error != CL_SUCCESS ) {
+    if ( error != CL_SUCCESS ) {
         return error;
     }
 #if defined(_MSC_VER)
@@ -8917,7 +8917,7 @@ inline cl_int copy( const CommandQueue &queue, IteratorType startIterator, Itera
     Event endEvent;
     error = queue.enqueueUnmapMemObject(buffer, pointer, 0, &endEvent);
     // if exceptions enabled, enqueueUnmapMemObject will throw
-    if( error != CL_SUCCESS ) { 
+    if ( error != CL_SUCCESS ) { 
         return error;
     }
     endEvent.wait();
@@ -8941,14 +8941,14 @@ inline cl_int copy( const CommandQueue &queue, const cl::Buffer &buffer, Iterato
     DataType *pointer = 
         static_cast<DataType*>(queue.enqueueMapBuffer(buffer, CL_TRUE, CL_MAP_READ, 0, byteLength, 0, 0, &error));
     // if exceptions enabled, enqueueMapBuffer will throw
-    if( error != CL_SUCCESS ) {
+    if ( error != CL_SUCCESS ) {
         return error;
     }
     std::copy(pointer, pointer + length, startIterator);
     Event endEvent;
     error = queue.enqueueUnmapMemObject(buffer, pointer, 0, &endEvent);
     // if exceptions enabled, enqueueUnmapMemObject will throw
-    if( error != CL_SUCCESS ) { 
+    if ( error != CL_SUCCESS ) { 
         return error;
     }
     endEvent.wait();

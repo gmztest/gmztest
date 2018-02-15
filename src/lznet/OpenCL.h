@@ -135,10 +135,10 @@ private:
     void add_weights(size_t layer, size_t size, const float* weights);
 
     void convolve3(int channels, int outputs,
-                    cl::Buffer& bufferInOut, cl::Buffer& bufferV,
-                    cl::Buffer& bufferM, weight_slice_t weights,
-                    cl::Buffer* bufferResidual,
-                    weight_slice_t* bn_weights);
+                   cl::Buffer& bufferInOut, cl::Buffer& bufferV,
+                   cl::Buffer& bufferM, weight_slice_t weights,
+                   cl::Buffer* bufferResidual,
+                   weight_slice_t* bn_weights);
     void batchnorm(int outputs, int channel_size, cl::Buffer& input,
                    cl::Buffer& output, cl::Buffer* residual,
                    weight_slice_t weights);

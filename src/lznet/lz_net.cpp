@@ -85,7 +85,7 @@ static std::array<std::array<int, 361>, 8> rotate_nn_idx_table;
 
 
 void Network::process_bn_var(std::vector<float>& weights, const float epsilon) {
-    for(auto&& w : weights) {
+    for (auto&& w : weights) {
         w = 1.0f / std::sqrt(w + epsilon);
     }
 }
@@ -97,15 +97,15 @@ std::vector<float> Network::winograd_transform_f(const std::vector<float>& f,
     // transpose(G.dot(f).dot(G.transpose()))
     // U matrix is transposed for better memory layout in SGEMM
     auto U = std::vector<float>(WINOGRAD_TILE * outputs * channels);
-    auto G = std::array<float, WINOGRAD_TILE>{ 1.0,  0.0,  0.0,
-                                               0.5,  0.5,  0.5,
-                                               0.5, -0.5,  0.5,
-                                               0.0,  0.0,  1.0};
+    auto G = std::array<float, WINOGRAD_TILE>{1.0,  0.0,  0.0,
+                                              0.5,  0.5,  0.5,
+                                              0.5, -0.5,  0.5,
+                                              0.0,  0.0,  1.0};
     auto temp = std::array<float, 12>{};
 
     for (auto o = 0; o < outputs; o++) {
         for (auto c = 0; c < channels; c++) {
-            for (auto i = 0; i < 4; i++){
+            for (auto i = 0; i < 4; i++) {
                 for (auto j = 0; j < 3; j++) {
                     auto acc = 0.0f;
                     for (auto k = 0; k < 3; k++) {
@@ -140,10 +140,10 @@ std::vector<float> Network::zeropad_U(const std::vector<float>& U,
     // Fill with zeroes
     auto Upad = std::vector<float>(WINOGRAD_TILE * outputs_pad * channels_pad);
 
-    for(auto o = 0; o < outputs; o++) {
-        for(auto c = 0; c < channels; c++) {
-            for(auto xi = 0; xi < WINOGRAD_ALPHA; xi++){
-                for(auto nu = 0; nu < WINOGRAD_ALPHA; nu++) {
+    for (auto o = 0; o < outputs; o++) {
+        for (auto c = 0; c < channels; c++) {
+            for (auto xi = 0; xi < WINOGRAD_ALPHA; xi++) {
+                for (auto nu = 0; nu < WINOGRAD_ALPHA; nu++) {
                     Upad[xi * (WINOGRAD_ALPHA * outputs_pad * channels_pad)
                          + nu * (outputs_pad * channels_pad)
                          + c * outputs_pad +
@@ -288,8 +288,8 @@ std::pair<int, int> Network::load_network_file(std::string filename) {
 
 void Network::initialize(void) {
     // Prepare rotation table
-    for(auto s = 0; s < 8; s++) {
-        for(auto v = 0; v < 19 * 19; v++) {
+    for (auto s = 0; s < 8; s++) {
+        for (auto v = 0; v < 19 * 19; v++) {
             rotate_nn_idx_table[s][v] = rotate_nn_idx(v, s);
         }
     }
@@ -311,7 +311,7 @@ void Network::initialize(void) {
 
     // Residual block convolutions
     for (auto i = size_t{0}; i < residual_blocks * 2; i++) {
-		conv_weights[weight_index] =
+        conv_weights[weight_index] =
             winograd_transform_f(conv_weights[weight_index],
                                  channels, channels);
         weight_index++;
@@ -321,7 +321,7 @@ void Network::initialize(void) {
     myprintf("Initializing OpenCL.\n");
     opencl.initialize(channels);
 
-    for(auto & opencl_net : opencl.get_networks()) {
+    for (auto & opencl_net : opencl.get_networks()) {
         auto tuners = opencl_net->getOpenCL().get_sgemm_tuners();
 
         auto mwg = tuners[0];
@@ -645,8 +645,8 @@ void batchnorm(size_t channels,
                std::vector<float>& data,
                const float* means,
                const float* stddivs,
-               const float* eltwise = nullptr)
-{
+               const float* eltwise = nullptr) {
+    
     auto lambda_ReLU = [](float val) { return (val > 0.0f) ?
                                        val : 0.0f; };
 
@@ -701,7 +701,7 @@ void Network::forward_cpu(std::vector<float>& input,
         std::swap(conv_out, conv_in);
         std::copy(begin(conv_in), end(conv_in), begin(res));
         winograd_convolve3(output_channels, conv_in,
-	                       conv_weights[i], V, M, conv_out);
+                           conv_weights[i], V, M, conv_out);
         batchnorm<361>(output_channels, conv_out,
                        batchnorm_means[i].data(),
                        batchnorm_stddivs[i].data());
@@ -709,7 +709,7 @@ void Network::forward_cpu(std::vector<float>& input,
         output_channels = conv_biases[i + 1].size();
         std::swap(conv_out, conv_in);
         winograd_convolve3(output_channels, conv_in,
-			               conv_weights[i + 1], V, M, conv_out);
+                           conv_weights[i + 1], V, M, conv_out);
         batchnorm<361>(output_channels, conv_out,
                        batchnorm_means[i + 1].data(),
                        batchnorm_stddivs[i + 1].data(),
@@ -909,7 +909,7 @@ Network::Prob Network::get_policy_internal(const FeedTensor ft,
         float val = outputs[j];
         move_prob[v] = val;
 
-        if(ft.feature[j][LADDERESC] != 0 && DistEdge(v) > 2) move_prob[v] *= 0.001;
+        if (ft.feature[j][LADDERESC] != 0 && DistEdge(v) > 2) move_prob[v] *= 0.001;
     }
 
     return move_prob;

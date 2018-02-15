@@ -35,19 +35,19 @@ std::array<double, EBVCNT> prob_dist_base;
  *  Calculate distance between two points.
  *  Return the Manhattan distance - 1.
  */
-int DistBetween(int v1, int v2){
+int DistBetween(int v1, int v2) {
 
-	// PASSが含まれる場合最大値（16）を返す
-	// Return the maximum value (=16) if v1 or v2 is PASS/VNULL.
-	if (v1 >= PASS || v2 >= PASS) return 16;
+    // PASSが含まれる場合最大値（16）を返す
+    // Return the maximum value (=16) if v1 or v2 is PASS/VNULL.
+    if (v1 >= PASS || v2 >= PASS) return 16;
 
-	int dx = std::abs(etox[v1] - etox[v2]);
-	int dy = std::abs(etoy[v1] - etoy[v2]);
+    int dx = std::abs(etox[v1] - etox[v2]);
+    int dy = std::abs(etoy[v1] - etoy[v2]);
 
-	// マンハッタン距離 - 1 = dx + dy + max(dx, dy) - 1
-	// Manhattan distance - 1 = dx + dy + max(dx, dy) - 1
-	// (dx,dy) = (1,0)->1, (1,1)->2, ..., (5,6)->16
-	return std::max(0, std::min(dx + dy + std::max(dx, dy) - 1, 16));
+    // マンハッタン距離 - 1 = dx + dy + max(dx, dy) - 1
+    // Manhattan distance - 1 = dx + dy + max(dx, dy) - 1
+    // (dx,dy) = (1,0)->1, (1,1)->2, ..., (5,6)->16
+    return std::max(0, std::min(dx + dy + std::max(dx, dy) - 1, 16));
 
 }
 
@@ -55,18 +55,18 @@ int DistBetween(int v1, int v2){
  *  盤端からの距離を求める
  *  Calculate distance from the outer boundary.
  */
-int DistEdge(int v){
+int DistEdge(int v) {
 
-	// PASSは盤外扱い
-	// Return 0 if v is PASS/VNULL.
-	if (v >= PASS) return 0;
+    // PASSは盤外扱い
+    // Return 0 if v is PASS/VNULL.
+    if (v >= PASS) return 0;
 
-	// 盤外->0, 1線->1, 2線->2, ...
-	// off-board->0, the 1st line->1, the 2nd line->2, ...
-	return std::min( {	etox[v],
-						EBSIZE - 1 - etox[v],
-						etoy[v],
-						EBSIZE - 1 - etoy[v] } );
+    // 盤外->0, 1線->1, 2線->2, ...
+    // off-board->0, the 1st line->1, the 2nd line->2, ...
+    return std::min({etox[v],
+                     EBSIZE - 1 - etox[v],
+                     etoy[v],
+                     EBSIZE - 1 - etoy[v]});
 
 }
 
@@ -77,42 +77,42 @@ int DistEdge(int v){
  */
 void ImportProbDist() {
 
-	std::ifstream ifs(working_dir + "prob_dist.txt");
-	if (ifs.fail()) cerr << "file could not be opened: prob_dist.txt" << endl;
+    std::ifstream ifs(working_dir + "prob_dist.txt");
+    if (ifs.fail()) cerr << "file could not be opened: prob_dist.txt" << endl;
 
-	for(int i=0;i<2;++i){
-		std::string str, prob_str;
-		getline(ifs, str);
-		std::istringstream iss(str);
+    for (int i = 0; i < 2; ++i) {
+        std::string str, prob_str;
+        getline(ifs, str);
+        std::istringstream iss(str);
 
-		for (int j=0;j<17;j++) {
-			for (int k=0;k<2;++k) {
-				getline(iss, prob_str, ',');
-				prob_dist[i][j][k] = stod(prob_str);
-			}
-		}
-	}
+        for (int j = 0; j < 17; j++) {
+            for (int k = 0; k < 2; ++k) {
+                getline(iss, prob_str, ',');
+                prob_dist[i][j][k] = stod(prob_str);
+            }
+        }
+    }
 
-	prob_dist_base.fill(0.0);
+    prob_dist_base.fill(0.0);
 
-	// 学習から求めた盤端からの距離パラメータ
-	// Distance parameters from the outer boundary.
+    // 学習から求めた盤端からの距離パラメータ
+    // Distance parameters from the outer boundary.
 #ifdef USE_SEMEAI
-	std::array<double, 10> prob_dist_edge =
-		{	1.0, 1.0, 1.0,
-			1.0, 1.0, 1.0,
-			1.0, 1.0, 1.0,
-			1.0	};
+    std::array<double, 10> prob_dist_edge =
+        {1.0, 1.0, 1.0,
+         1.0, 1.0, 1.0,
+         1.0, 1.0, 1.0,
+         1.0};
 #else
-	std::array<double, 10> prob_dist_edge =
-		{	0.448862, 0.823956, 1.639304,
-			1.257309, 0.959127, 1.007954,
-			1.084042, 1.068953, 1.063100,
-			1.101500	};
+    std::array<double, 10> prob_dist_edge =
+        {0.448862, 0.823956, 1.639304,
+         1.257309, 0.959127, 1.007954,
+         1.084042, 1.068953, 1.063100,
+         1.101500};
 #endif
 
-	for(auto i:rtoe){
-		prob_dist_base[i] = prob_dist_edge[DistEdge(i) - 1];
-	}
+    for (auto i: rtoe) {
+        prob_dist_base[i] = prob_dist_edge[DistEdge(i) - 1];
+    }
 
 }
