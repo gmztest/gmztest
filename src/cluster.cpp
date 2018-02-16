@@ -272,7 +272,7 @@ int Cluster::Consult(Tree& tree, std::ofstream* log_file) {
     binfo.ratio = ratio;
     binfo_list.push_back(binfo);
 
-    for (int i = 0, n=(int)binfo_list.size(); i < n; ++i) {
+    for (int i = 0, n = (int)binfo_list.size(); i < n; ++i) {
         if (i == n - 1) {
             PrintLog(log_file, "master: ");
         } else {
@@ -289,7 +289,7 @@ int Cluster::Consult(Tree& tree, std::ofstream* log_file) {
     int max_cnt = 0;
     double max_rate = 0.;
 
-    for (int i = 0, n=(int)binfo_list.size(); i < n; ++i) {
+    for (int i = 0, n = (int)binfo_list.size(); i < n; ++i) {
         int conc_cnt = 0;
         double conc_rate = 0.;
         for (int j = 0; j < n; ++j) {

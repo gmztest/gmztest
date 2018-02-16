@@ -771,7 +771,7 @@ inline bool Board::IsSelfAtariNakade(int v) const {
                         // Calculate Zobrist Hash relative to the center position.
                         space_hash[pl] ^= zobrist.hash[0][0][v_tmp - v + EBVCNT/2];
                         forEach4Nbr(v_tmp, v_nbr2, {
-                            if (    color[v_nbr2] == int(pl == 0) + 2) {
+                            if (color[v_nbr2] == int(pl == 0) + 2) {
                                 if (ren[ren_idx[v_nbr2]].lib_cnt != 2) {
                                     under5[pl] = false;
                                     break;

@@ -168,10 +168,10 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
                     do {
                         is_edge &= (DistEdge(v_tmp) == 1);
                         if (!is_edge) break;
-                        if (    v_tmp == rtoe[0]                     ||
-                                v_tmp == rtoe[BSIZE - 1]             ||
-                                v_tmp == rtoe[BSIZE * (BSIZE - 1)]     ||
-                                v_tmp == rtoe[BVCNT - 1]    ) {
+                        if (v_tmp == rtoe[0]                     ||
+                            v_tmp == rtoe[BSIZE - 1]             ||
+                            v_tmp == rtoe[BSIZE * (BSIZE - 1)]   ||
+                            v_tmp == rtoe[BVCNT - 1]) {
 
                             bool is_not_bnt = false;
                             forEach4Nbr(v_tmp, v_nbr1, {

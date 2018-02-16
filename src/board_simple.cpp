@@ -218,7 +218,7 @@ bool BoardSimple::IsEyeShape(int pl, int v) const {
         if (wedge_cnt == 2) {
             forEach4Diag(v, v_diag, {
                 if (color[v_diag] == (int(pl==0) + 2)) {
-                    if (    ren[ren_idx[v_diag]].IsAtari() &&
+                    if (ren[ren_idx[v_diag]].IsAtari() &&
                         ren[ren_idx[v_diag]].lib_atr != ko)
                     {
                         return true;
@@ -764,7 +764,7 @@ inline bool BoardSimple::IsSelfAtariNakade(int v) const {
                             // Calculate Zobrist Hash relative to the center position.
                             space_hash[pl] ^= zobrist.hash[0][0][v_tmp - v + EBVCNT/2];
                             forEach4Nbr(v_tmp, v_nbr2, {
-                                if (    color[v_nbr2] == int(pl == 0) + 2) {
+                                if (color[v_nbr2] == int(pl == 0) + 2) {
                                     if (ren[ren_idx[v_nbr2]].lib_cnt != 2) {
                                         under5[pl] = false;
                                         break;

@@ -1587,7 +1587,7 @@ static cl_uint getVersion(const vector<char> &versionInfo)
     int highVersion = 0;
     int lowVersion = 0;
     int index = 7;
-    while (versionInfo[index] != '.' ) {
+    while ( versionInfo[index] != '.' ) {
         highVersion *= 10;
         highVersion += versionInfo[index]-'0';
         ++index;

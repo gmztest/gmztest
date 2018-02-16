@@ -18,7 +18,7 @@ bool SearchLadder(Board& b, std::vector<int>(&ladder_list)[2]) {
 
     BoardSimple bs = b;
 
-    for (int i = 0, n=bs.empty_cnt; i < n; ++i) {
+    for (int i = 0, n = bs.empty_cnt; i < n; ++i) {
         int v = bs.empty[i];
         // ƒVƒ`ƒ‡ƒE‚ð“¦‚°‚éŽè
         // Check whether it is a move to escape from Ladder.

@@ -128,7 +128,7 @@ int CallGTP() {
         std::thread read_th([&gtp_str, &is_playing, &b, &tree]{
             while (gtp_str == "") {
                 ReadGTP(gtp_str);
-                if (    gtp_str != "" && is_playing &&
+                if (gtp_str != "" && is_playing &&
                     b.prev_move[b.her] < PASS)
                 {
                     tree.stop_think = true;

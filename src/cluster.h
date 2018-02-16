@@ -24,7 +24,7 @@ void SplitString(const std::string& str, const std::string& delim, List& split_l
     using string = std::string;
     string::size_type pos = 0;
 
-    while (pos != string::npos ) {
+    while (pos != string::npos) {
         string::size_type p = str.find(delim, pos);
 
         if (p == string::npos) {

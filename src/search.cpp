@@ -100,7 +100,7 @@ Tree::Tree(std::string sl_path, std::string vl_path, std::vector<int>& gpu_list)
 //         if (gpu_list.empty())
 //             for (int i = 0; i < gpu_cnt; ++i) gpu_list.push_back(i);
 
-//         for (int i = 0, n=(int)gpu_list.size(); i < n; ++i) {
+//         for (int i = 0, n = (int)gpu_list.size(); i < n; ++i) {
 
 // #ifdef CPU_ONLY
 //             const std::string device_name = "/cpu:" + std::to_string(gpu_list[i]);
@@ -408,15 +408,15 @@ int Tree::CreateNode(Board& b) {
         std::vector<std::pair<double, int>> prob_list;
         for (int i = 0; i < b.empty_cnt; ++i) {
             int v = b.empty[i];
-            if (    !b.IsLegal(b.my,v)    ||
-                b.IsEyeShape(b.my,v)||
+            if (!b.IsLegal(b.my,v)    ||
+                b.IsEyeShape(b.my,v)  ||
                 b.IsSeki(v))     continue;
 
             prob_list.push_back(std::make_pair((double)pn->prob[v], v));
         }
         std::sort(prob_list.begin(), prob_list.end(), std::greater<std::pair<double,int>>());
 
-        for (int i = 0, n=(int)prob_list.size(); i < n; ++i) {
+        for (int i = 0, n = (int)prob_list.size(); i < n; ++i) {
             Child new_child;
             new_child.move = prob_list[i].second;
             new_child.prob = prob_list[i].first;
