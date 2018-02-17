@@ -34,5 +34,5 @@
 -weight file =weights.txt
 -rollout =on
 -full tune =off
--debug =off
+-debug =on
 

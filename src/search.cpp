@@ -977,7 +977,8 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
     } else {
         lambda = 1.0;
     }
-    cp = 0.1 + 2.9 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 0) / (16 - 0)));
+    // cp = 0.1 + 2.9 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 0) / (16 - 0)));
+    cp = 0.1;
     bool use_rollout = (lambda != 1.0);
 
     // 5. root node‚ª–¢•]‰¿‚Ì‚Æ‚«AŠm—¦•ª•z‚ğ•]‰¿‚·‚é

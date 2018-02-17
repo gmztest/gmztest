@@ -1038,32 +1038,61 @@ void Network::tensor_to_plane(const FeedTensor ft, NNPlanes& planes) {
 
 
 void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
-    // for (int a = 0; a < 17; ++a) {
-    //     myprintf("Tensor %d\n", a);
-    //     for (int b = 17; b >= 0; --b) {
-    //         for (int c =0; c < 19; ++c) {
-    //             float mv = ft.feature[b*19+c][a];
-    //             if (mv > 0.1) {
-    //                 myprintf("\033[41m%4.1f\033[0m", mv);
-    //             } else {
-    //                 myprintf("%4.1f", mv);
-    //             }
-    //         }
-    //         myprintf("\n");
-    //     }
-    //     myprintf("\n");
-    // }
+    bool show_tensor = false;
+    bool show_plane = false;
+    bool show_dmap = false;
+    bool show_rmap = true;
+    bool show_value = true;
+
     NNPlanes planes;
     tensor_to_plane(ft, planes);
-    for (int a = 0; a < 18; ++a) {
-        myprintf("Plane %d\n", a);
-        for (int b = 18; b >= 0; --b) {
-            for (int c =0; c < 19; ++c) {
-                float mv = planes[a][b*19+c];
-                if (mv > 0.1) {
-                    myprintf("\033[41m%4.1f\033[0m", mv);
+    
+    if (show_tensor) {
+        for (int a = 0; a < 17; ++a) {
+            myprintf("Tensor %d\n", a);
+            for (int b = 17; b >= 0; --b) {
+                for (int c =0; c < 19; ++c) {
+                    float mv = ft.feature[b*19+c][a];
+                    if (mv > 0.1) {
+                        myprintf("\033[41m%4.1f\033[0m", mv);
+                    } else {
+                        myprintf("%4.1f", mv);
+                    }
+                }
+                myprintf("\n");
+            }
+            myprintf("\n");
+        }
+    }
+    
+    if (show_plane) {
+        for (int a = 0; a < 18; ++a) {
+            myprintf("Plane %d\n", a);
+            for (int b = 18; b >= 0; --b) {
+                for (int c =0; c < 19; ++c) {
+                    float mv = planes[a][b*19+c];
+                    if (mv > 0.1) {
+                        myprintf("\033[41m%4.1f\033[0m", mv);
+                    } else {
+                        myprintf("%4.1f", mv);
+                    }
+                }
+                myprintf("\n");
+            }
+            myprintf("\n");
+        }
+    }
+
+    if (show_dmap) {
+        Prob direct_heatmap = get_policy_internal(ft, planes, 0);
+        myprintf("Direct Heatmap\n");
+        for (int i = 18; i >= 0; --i) {
+            for (int j = 0; j < 19; ++j) {
+                float mp = direct_heatmap[rtoe[i * 19 + j]];
+                if (mp > 0.05) {
+                    myprintf("\033[41m%4.1f\033[0m", mp);
                 } else {
-                    myprintf("%4.1f", mv);
+                    myprintf("%4.1f", mp);
                 }
             }
             myprintf("\n");
@@ -1071,31 +1100,24 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
         myprintf("\n");
     }
 
-    Prob direct_heatmap = get_policy_internal(ft, planes, 0);
-    myprintf("Direct Heatmap\n");
-    for (int i = 18; i >= 0; --i) {
-        for (int j = 0; j < 19; ++j) {
-            float mp = direct_heatmap[rtoe[i * 19 + j]];
-            if (mp > 0.05) {
-                myprintf("\033[41m%4.1f\033[0m", mp);
-            } else {
-                myprintf("%4.1f", mp);
+    if (show_rmap) {
+        myprintf("Rotated Heatmap\n");
+        for (int i = 18; i >= 0; --i) {
+            for (int j = 0; j < 19; ++j) {
+                float mp = move_prob[rtoe[i * 19 + j]];
+                if (mp > 0.05) {
+                    myprintf("\033[41m%4.1f\033[0m", mp);
+                } else {
+                    myprintf("%4.1f", mp);
+                }
             }
+            myprintf("\n");
         }
         myprintf("\n");
     }
-    myprintf("\n");
-    myprintf("Rotated Heatmap\n");
-    for (int i = 18; i >= 0; --i) {
-        for (int j = 0; j < 19; ++j) {
-            float mp = move_prob[rtoe[i * 19 + j]];
-            if (mp > 0.05) {
-                myprintf("\033[41m%4.1f\033[0m", mp);
-            } else {
-                myprintf("%4.1f", mp);
-            }
-        }
-        myprintf("\n");
+
+    if (show_value) {
+        float value = get_value_internal(planes, 0);
+        myprintf("original_value: %5.2f\n\n", value);
     }
-    myprintf("\n");
 }
