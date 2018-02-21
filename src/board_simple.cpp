@@ -22,7 +22,7 @@
     v_diag = v_origin - EBSIZE - 1;    block;        
 
 #define forEach8Nbr(v_origin,v_nbr,d_nbr,d_opp,block)                                \
-    int v_nbr;    int d_nbr; int d_opp;                                              \
+    int v_nbr; int d_nbr; int d_opp;                                                 \
     v_nbr = v_origin + EBSIZE;            d_nbr = 0; d_opp = 2;        block;        \
     v_nbr = v_origin + 1;                 d_nbr = 1; d_opp = 3;        block;        \
     v_nbr = v_origin - EBSIZE;            d_nbr = 2; d_opp = 0;        block;        \

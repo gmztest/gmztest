@@ -56,78 +56,8 @@ T FetchAdd(std::atomic<T> *obj, T arg) {
 Tree::Tree() {
 
     Tree::Clear();
-    std::string sl_path;
-    std::string vl_path;
-    std::stringstream ss;
-
-    if (pb_dir != "") ss << working_dir << pb_dir << spl_str;
-    ss << "sl.pb";
-    sl_path = ss.str();
-
-    ss.str("");
-    if (pb_dir != "") ss << working_dir << pb_dir << spl_str;
-    ss << "vl.pb";
-    vl_path = ss.str();
-
-    std::vector<int> gpu_list;
-    for (int i = 0; i < gpu_cnt; ++i) gpu_list.push_back(i);
-
-    // SetGPU(sl_path, vl_path, gpu_list);
 
 }
-
-
-Tree::Tree(std::string sl_path, std::string vl_path, std::vector<int>& gpu_list) {
-
-    Tree::Clear();
-    // SetGPU(sl_path, vl_path, gpu_list);
-
-}
-
-
-// void Tree::SetGPU(std::string sl_path, std::string vl_path, std::vector<int>& gpu_list) {
-
-//     // Suppress tensorflow information and warnings.
-//     if (!self_match) putenv("TF_CPP_MIN_LOG_LEVEL=2");
-    
-//     {
-//         using namespace tensorflow;
-
-//         sess_policy.clear();
-//         sess_value.clear();
-
-//         if (gpu_list.empty())
-//             for (int i = 0; i < gpu_cnt; ++i) gpu_list.push_back(i);
-
-//         for (int i = 0, n = (int)gpu_list.size(); i < n; ++i) {
-
-// #ifdef CPU_ONLY
-//             const std::string device_name = "/cpu:" + std::to_string(gpu_list[i]);
-// #else
-//             const std::string device_name = "/gpu:" + std::to_string(gpu_list[i]);
-// #endif //CPU_ONLY
-
-//             Session* sess_p(NewSession(SessionOptions()));
-//             GraphDef graph_p;
-
-//             ReadBinaryProto(Env::Default(), sl_path, &graph_p);
-//             graph::SetDefaultDevice(device_name, &graph_p);
-//             sess_p->Create(graph_p);
-
-//             Session* sess_v(NewSession(SessionOptions()));
-//             GraphDef graph_v;
-
-//             ReadBinaryProto(Env::Default(), vl_path, &graph_v);
-//             graph::SetDefaultDevice(device_name, &graph_v);
-//             sess_v->Create(graph_v);
-
-//             sess_policy.push_back(sess_p);
-//             sess_value.push_back(sess_v);
-
-//         }
-//     }
-
-// }
 
 
 void Tree::Clear() {
@@ -919,13 +849,12 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
 
     // 4. Adjust lambda to progress.
     if (cfg_rollout) {
-        // lambda = 0.8 - 0.4 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 160) / (360 - 160)));
-        lambda = 0.5;
+        lambda = 0.8 - 0.4 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 160) / (360 - 160)));
     } else {
         lambda = 1.0;
     }
-    // cp = 0.1 + 2.9 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 0) / (16 - 0)));
-    cp = 1.0;
+    cp = 0.4 + 0.6 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 0) / (16 - 0)));
+
     bool use_rollout = (lambda != 1.0);
 
     // 5. If the root node is not evaluated, evaluate the probability.

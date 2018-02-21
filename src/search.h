@@ -93,8 +93,6 @@ public:
     std::unordered_map<int64, std::unordered_set<int>> book;
 
     Tree();
-    Tree(std::string sl_path, std::string vl_path, std::vector<int>& gpu_list);
-    // void SetGPU(std::string sl_path, std::string vl_path, std::vector<int>& gpu_list);
     void InitBoard();
     void Clear();
 
