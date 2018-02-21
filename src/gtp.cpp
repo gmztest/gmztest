@@ -91,12 +91,10 @@ int CallGTP() {
     is_worker = false;
 #endif
 
-    // 1. masterの場合、子プロセスを起動する.
-    //    Launch workers if master of the cluster.
+    // 1. Launch workers if master of the cluster.
     if (is_master) cluster.LaunchWorkers();
 
-    // 2. ログファイルのパス
-    //    Set file path of log.
+    // 2. Set file path of log.
     int file_cnt = 0;
     if (save_log) {
         std::stringstream ss;
@@ -104,8 +102,7 @@ int CallGTP() {
         tree.log_file = new std::ofstream(ss.str(), std::ofstream::out);
     }
 
-    // 3. 入力棋譜がある場合は読みだす
-    //    Resume game if resume_sgf_path is set.
+    // 3. Resume game if resume_sgf_path is set.
     SgfData sgf;
     if (resume_sgf_path != "") {
         SgfData sgf_read;
@@ -118,12 +115,10 @@ int CallGTP() {
     SendCommandList();
 #endif
 
-    // 4. GTPプロトコルによる通信を開始する
-    //    Start communication with the GTP protocol.
+    // 4. Start communication with the GTP protocol.
     for (;;) {
         gtp_str = "";
 
-        // ポンダー中にコマンドを監視するスレッド
         // Thread that monitors GTP commands during pondering.
         std::thread read_th([&gtp_str, &is_playing, &b, &tree]{
             while (gtp_str == "") {
@@ -137,7 +132,6 @@ int CallGTP() {
             }
         });
 
-        // GTPコマンドが送られてくるまでポンダー
         // Ponder until GTP commands are sent.
         if (is_playing && b.prev_move[b.her] != PASS   &&
             (tree.left_time > 25 || tree.byoyomi != 0) &&
@@ -150,7 +144,6 @@ int CallGTP() {
         read_th.join();
         tree.stop_think = false;
 
-        // GTPコマンドの処理
         // Process GTP command.
         if (gtp_str == "" || gtp_str == "\n") {
             continue;
@@ -165,12 +158,10 @@ int CallGTP() {
             cerr << "GMZ only corresponds to boardsize 19." << endl;
         }
         else if (FindStr(gtp_str, "list_commands")) {
-            // 対応しているコマンド一覧を送る
             // Send the corresponding command list.
             SendCommandList();
         }
         else if (FindStr(gtp_str, "clear_board")) {
-            // 盤面を初期化する.
             // Initialize the board.
             b.Clear();
             tree.InitBoard();
@@ -178,7 +169,7 @@ int CallGTP() {
 
             if (is_master) cluster.SendCommand("clear_board");
 
-            // 棋譜から再開 Resume from SGF file.
+            // Resume from SGF file.
             if (resume_sgf_path != "") {
                 SgfData sgf_read;
                 sgf_read.ImportData(working_dir + resume_sgf_path);
@@ -220,7 +211,6 @@ int CallGTP() {
             fprintf(stderr, "set komi = %.1f.\n", tree.komi);
         }
         else if (FindStr(gtp_str, "time_left")) {
-            // 残り時間を設定する
             // Set remaining time.
             // "=time_left B 944", "=time_left white 300", ...
             SplitString(gtp_str, " ", split_list);
@@ -239,7 +229,6 @@ int CallGTP() {
             SendGTP("= \n\n");
         }
         else if (FindStr(gtp_str, "genmove")) {
-            // 次の手を考えて送信する.
             // Think and send the next move.
             // "=genmove b", "=genmove white", ...
 
@@ -262,23 +251,20 @@ int CallGTP() {
 
 
             if (play_mimic && b.my == 0) {
-                // a. マネ碁フラグが立っているときマネ碁をする.
-                //    Play mimic move if play_mimic is true.
+                // a. Play mimic move if play_mimic is true.
                 int v = b.prev_move[b.her];
 
                 if (DistBetween(v, EBVCNT/2) < 5 || v == PASS) {
-                    // 中央付近に打たれたら自力で考える.
                     // Think by itself if the previous move is near the center.
                     play_mimic = false;
                 } else {
                     next_move = tree.SearchTree(b, 1.0, win_rate, true, false);
                     if (win_rate >= 0.65) {
-                        // 勝率が65%を超えるならマネ碁を終了する
                         // Think by itself if the winning rate is over 65%.
                         play_mimic = false;
                     }
                     else {
-                        // マネ碁する手を求める. Set mimic move.
+                        // Set mimic move.
                         int x = EBSIZE - 1 - etox[v];
                         int y = EBSIZE - 1 - etoy[v];
                         if (b.IsLegal(b.my, xytoe[x][y])) {
@@ -290,15 +276,13 @@ int CallGTP() {
             }
 
             if (think_full) {
-                // b. 最善手を求める.
-                //    Search for the best move.
+                // b. Search for the best move.
                 next_move = tree.SearchTree(b, 0.0, win_rate, true, false);
 
                 if (is_master && next_move != PASS    &&
                     b.prev_move[b.her] != PASS        &&
                     (tree.left_time > 25 || tree.byoyomi != 0))
                 {
-                    // 合議の結果を反映する
                     // Reflect the result of consultation.
                     next_move = cluster.Consult(tree, tree.log_file);
                 }
@@ -312,7 +296,6 @@ int CallGTP() {
             if (play_mimic && b.IsMimicGo()) { next_move = EBVCNT/2; }
             else if (win_rate < resign_value) {
 
-                // 1000回プレイアウトして本当に負けているか確認する
                 // Roll out 1000 times to check if really losing.
                 Board b_;
                 int win_cnt = 0;
@@ -324,11 +307,11 @@ int CallGTP() {
                 if ((double)win_cnt / 1000 < 0.3) next_move = PASS;
             }
 
-            // c. 局面を進める. Play the move.
+            // c. Play the move.
             b.PlayLegal(next_move);
             tree.UpdateRootNode(b);
 
-            // d. ログファイルを更新する. Update logs.
+            // d. Update logs.
             sgf.AddMove(next_move);
             if (!is_worker) {
 
@@ -355,7 +338,7 @@ int CallGTP() {
                 }
             }
 
-            // e. 着手のGTPコマンドを送る. Send response of the next move.
+            // e. Send response of the next move.
             string str_nv = CoordinateString(next_move);
             if (next_move == PASS) {
                 if (!never_resign && win_rate < resign_value) SendGTP("= resign\n\n");
@@ -364,15 +347,14 @@ int CallGTP() {
                 SendGTP("= %s\n\n", str_nv.c_str());
             }
 
-            // f. 子プロセスに手を送信する.
-            //    Send play command to the remote processes.
+            // f. Send play command to the remote processes.
             if (is_master) {
                 string cmd_str = (b.my == 0) ? "play b " : "play w ";
                 cmd_str += str_nv;
                 cluster.SendCommand(cmd_str);
             }
 
-            // g. 残り持ち時間を更新する. Update remaining time.
+            // g. Update remaining time.
             if (need_time_control) {
                 auto t2 = std::chrono::system_clock::now();
                 double elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000;
@@ -381,14 +363,12 @@ int CallGTP() {
 
         }
         else if (FindStr(gtp_str, "play ")) {
-            // 手を受信し、盤面に反映する. "play w D4" のように来る
             // Receive the opponent's move and reflect on the board.
             // "=play w D4", "play b pass", ...
 
             int next_move;
 
-            // a. 文字列を解析する.
-            //    Analyze received string.
+            // a. Analyze received string.
             if (FindStr(gtp_str, "pass", "Pass", "PASS")) {
                 next_move = PASS;
             } else if (FindStr(gtp_str, "resign")) {
@@ -408,8 +388,7 @@ int CallGTP() {
                 next_move = xytoe[x][y];
             }
 
-            // b. 異なる手番の石を配置する前にパスを挿入する
-            //    Insert pass before placing a opponent's stone.
+            // b. Insert pass before placing a opponent's stone.
             if ((b.my == 0 && FindStr(gtp_str, "play b", "play B")) ||
                 (b.my == 1 && FindStr(gtp_str, "play w", "play W")))
             {
@@ -426,11 +405,11 @@ int CallGTP() {
                 std::cerr << ss.str();
             }
 
-            // c. 局面を進める. Play the move.
+            // c. Play the move.
             b.PlayLegal(next_move);
             tree.UpdateRootNode(b);
 
-            // d. ログファイルを更新する. Update logs.
+            // d. Update logs.
             sgf.AddMove(next_move);
             if (!is_worker) {
                 if (tree.log_file != NULL) PrintBoard(b, next_move, tree.log_file);
@@ -453,11 +432,10 @@ int CallGTP() {
                 }
             }
 
-            // e. GTPコマンドを送信. Send GTP response.
+            // e. Send GTP response.
             SendGTP("= \n\n");
 
-            // f. マネ碁をしているとき、相手がツケてきたらやめる
-            //    Stop mimic go if the opponent's move is Tsuke.
+            // f. Stop mimic go if the opponent's move is Tsuke.
             if (play_mimic && b.move_cnt < 11 && next_move < PASS) {
                 int my_color = b.my + 2;
                 for (auto dv: VSHIFT) {
@@ -471,20 +449,19 @@ int CallGTP() {
 
         }
         else if (FindStr(gtp_str, "undo", "Undo")) {
-            // 局面を１手戻す. Undo the previous move.
+            // Undo the previous move.
 
             std::vector<int> move_history;
             for (auto v_hist: b.move_history) move_history.push_back(v_hist);
             if (!move_history.empty()) move_history.pop_back();
 
-            // a. 局面を初期化. Initialize board.
+            // a. Initialize board.
             b.Clear();
             tree.Clear();
             sgf.Clear();
             if (is_master) cluster.SendCommand("clear_board");
 
-            // b. 局面を一手前まで進める.
-            //    Advance the board to the previous state.
+            // b. Advance the board to the previous state.
             for (auto v_hist: move_history) {
                 b.PlayLegal(v_hist);
                 sgf.AddMove(v_hist);
@@ -502,7 +479,7 @@ int CallGTP() {
             }
             tree.UpdateRootNode(b);
 
-            // c. ログファイルを更新する. Update logs.
+            // c. Update logs.
             if (!is_worker) {
                 if (save_log) {
                     std::stringstream ss;
@@ -511,11 +488,10 @@ int CallGTP() {
                 }
             }
 
-            // d. GTPコマンドを送信. Send GTP response.
+            // d. Send GTP response.
             SendGTP("= \n\n");
         }
         else if (FindStr(gtp_str, "final_score")) {
-            // 1000回プレイアウトを行い、最終的なスコアを求める
             // Roll out 1000 times and return the final score.
 
             // a. Roll out 1000 times.
@@ -557,7 +533,6 @@ int CallGTP() {
             SendGTP("= ponder started.\n");
         }
         else if (FindStr(gtp_str, "bestbranch")) {
-            // 最善手を送信する
             // Send the best move.
 
             Node *pn = &tree.node[tree.root_node_idx];
@@ -575,7 +550,7 @@ int CallGTP() {
             }
 
             std::stringstream ss;
-            ss     << "bestbranch " << tree.move_cnt
+            ss  << "bestbranch " << tree.move_cnt
                 << " " << (int)rc0->move
                 << " " << (int)rc0->rollout_cnt
                 << " " << win_rate
@@ -607,7 +582,6 @@ int CallGTP() {
 
         }
         else if (FindStr(gtp_str, "analyze")) {
-            // N秒思考して読み筋を表示する
             // Think in N seconds and display top 10 moves.
             // "= analyze 60" -> think 60 sec.
             // "= analyze" -> think with default time setting.
@@ -625,7 +599,6 @@ int CallGTP() {
 
         }
         else if (FindStr(gtp_str, "kgs-time_settings")) {
-            // 時間を設定する
             // Set main and byoyomi time.
             // "=kgs-time_settings byoyomi 30 60 3", ...
             SplitString(gtp_str, " ", split_list);
@@ -644,7 +617,6 @@ int CallGTP() {
             SendGTP("= \n\n");
         }
         else if (FindStr(gtp_str, "time_settings")) {
-            // 時間を設定する
             // Set main and byoyomi time.
             // "=time_settings 30 60 3", ...
             SplitString(gtp_str, " ", split_list);
@@ -657,7 +629,6 @@ int CallGTP() {
             SendGTP("= \n\n");
         }
         else if (FindStr(gtp_str, "set_free_handicap")) {
-            // 置き石を配置する
             // "=set_free_handicap D4 ..."
             SplitString(gtp_str, " ", split_list);
             if (split_list[0] == "=") split_list.erase(split_list.begin());
@@ -693,7 +664,6 @@ int CallGTP() {
             cerr << "set free handicap.\n";
         }
         else if (FindStr(gtp_str, "fixed_handicap") || FindStr(gtp_str, "place_free_handicap")) {
-            // 置き石を配置する. Place fixed handicap stones.
             // "=fixed_handicap 2"
             SplitString(gtp_str, " ", split_list);
             if (split_list[0] == "=") split_list.erase(split_list.begin());
@@ -728,7 +698,6 @@ int CallGTP() {
             cerr << "placed handicap stones.\n";
         }
         else if (FindStr(gtp_str, "gogui-play_sequence")) {
-            // 引き継ぎ対局で、すべての手を受信する
             // "=gogui-play_sequence B R16 W D16 B Q3 W D3 ..."
 
             SplitString(gtp_str, " ", split_list);
@@ -755,9 +724,9 @@ int CallGTP() {
                     next_move = xytoe[x][y];
                 }
 
-                // 局面を進める. Play the move.
+                // Play the move.
                 b.PlayLegal(next_move);
-                // ログファイルを更新する. Update logs.
+                // Update logs.
                 sgf.AddMove(next_move);
                 if (!is_worker) {
                     if (tree.log_file != NULL) PrintBoard(b, next_move, tree.log_file);

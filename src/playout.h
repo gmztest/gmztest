@@ -7,7 +7,6 @@
 #include "board.h"
 #include "print.h"
 
-// ハッシュ関数の特殊化
 // Specialization of hash function.
 namespace std {
     template<typename T>
@@ -72,13 +71,11 @@ struct Statistics{
 
 struct LGR{
 
-    // PolicyNetによって得られた最善手を保持する
     // Container that has LGR moves obtained by PolicyNet.
     //     key: { previous 12-point pattern, previous move, ... }
     //     value: best move
     std::array<std::unordered_map<std::array<int,4>, int>, 2> policy;
 
-    // プレイアウトによって得られた手を保持する配列
     // Array that has LGR moves obtained by rollout.
     std::array<std::array<std::array<int, EBVCNT>, EBVCNT>, 2> rollout;
 

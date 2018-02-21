@@ -5,11 +5,6 @@
 
 /**************************************************************
  *
- *  入力テンソルのクラス
- *
- *  ニューラルネットに入力する盤面の特徴量を格納する.
- *  12種類49個の特徴を各座標(361)に持つ.
- *
  *  Class of the input tensor.
  *
  *  This class has the features of board for feed of the neural net.
@@ -24,25 +19,25 @@ public:
 #ifdef USE_52FEATURE
     //  Input features for the neural net.
     //    [0]-[15]:    stones 0->my(t) 1->her(t) 2->my(t-1) ...
-    //  [16]:        color
-    //    [17]-[24]:    liberty
-    //    [25]-[32]:    capture size
-    //    [33]-[40]:    self Atari size
-    //    [41]-[48]:    liberty after
+    //    [16]:        color
+    //    [17]-[24]:   liberty
+    //    [25]-[32]:   capture size
+    //    [33]-[40]:   self Atari size
+    //    [41]-[48]:   liberty after
     //    [49]:        ladder capture
     //    [50]:        ladder escape
     //    [51]:        sensibleness
     std::array<std::array<float, 52>, BVCNT> feature;
 #else
     //  Input features for the neural net.
-    //    [0]-[2]:    stone 0->empty 1->player 2->opponent
-    //    [3]:        zeros
-    //    [4]:        ones
+    //    [0]-[2]:     stone 0->empty 1->player 2->opponent
+    //    [3]:         zeros
+    //    [4]:         ones
     //    [5]-[12]:    turn_since 5->previous move, 6->two moves before, ...
-    //    [13]-[20]:    liberty
-    //    [21]-[28]:    capture size
-    //    [29]-[36]:    self Atari size
-    //    [37]-[44]:    liberty after
+    //    [13]-[20]:   liberty
+    //    [21]-[28]:   capture size
+    //    [29]-[36]:   self Atari size
+    //    [37]-[44]:   liberty after
     //    [45]:        ladder capture
     //    [46]:        ladder escape
     //    [47]:        sensibleness

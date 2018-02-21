@@ -16,7 +16,6 @@
 
 
 /**
- *  周囲の座標に同一処理をするマクロ
  *  Macro that executes the same processing on surrounding vertexes.
  */
 #define forEach4Nbr(v_origin,v_nbr,block)             \
@@ -77,7 +76,6 @@ void FeedTensor::Clear() {
 }
 
 /**
- *  盤面から特徴を抽出してFeedTensorに入力する
  *  Set tensors from the board.
  */
 void FeedTensor::Set(Board& b, int nv) {
@@ -87,8 +85,7 @@ void FeedTensor::Set(Board& b, int nv) {
     color = b.my;
 
 #ifndef USE_52FEATURE
-    // 1. turn since(5-12)を更新
-    //    Update turn since (5-12).
+    // 1. Update turn since (5-12).
     for (int i = 0, i_max=std::min(8,int(b.move_cnt)); i < i_max; ++i) {
         int v = b.move_history[b.move_cnt - 1 - i];
         if (v == PASS) continue;
@@ -102,10 +99,10 @@ void FeedTensor::Set(Board& b, int nv) {
         int pl_color[2] = { 2 + int(b.my == 1), 2 + int(b.my == 0) };
 
 #ifdef USE_52FEATURE
-        // 1. color(16)を更新. Update color (16)
+        // 1. Update color (16)
         feature[rv][COLOR] = (float)color;
 
-        // 2. stones(0-15)を更新. Update stone (0-15).
+        // 2. Update stone (0-15).
         feature[rv][0] = float(v_color == pl_color[0]);
         feature[rv][1] = float(v_color == pl_color[1]);
         for (int i = 1; i < 8; ++i) {
@@ -114,28 +111,24 @@ void FeedTensor::Set(Board& b, int nv) {
         }
 #else
 
-        // 2. stone(0-3)を更新. Update stone (0-3).
-        //    v_color == 0 -> empty,  2 -> white, 3 -> black
+        // 2. v_color == 0 -> empty,  2 -> white, 3 -> black
         feature[rv][int(v_color != 0)*(1 + int(b.my == int(v_color == 2)))] = 1.0;
 #endif //USE_52FEATURE
 
         if (v_color >= 2) {
 
-            // 3. liberty(LIBERTY...LIBERTY+8)を更新. Update number of liberty.
-            //    [LIBERTY + 7] -> 8 or more liberty
+            // 3. [LIBERTY + 7] -> 8 or more liberty
             feature[rv][LIBERTY + std::min(7, (int)b.ren[b.ren_idx[v]].lib_cnt - 1)] = 1.0;
 
         }
         else if (b.IsLegal(b.my, v)) {
 
-            // 4. sensibleness(SENSIBLENESS)を更新
-            //    Update sensibleness (SENSIBLENESS).
+            // 4. Update sensibleness (SENSIBLENESS).
             if (!b.IsEyeShape(b.my, v) && !b.IsSeki(v)) {
                 feature[rv][SENSIBLENESS] = 1.0;
             }
 
-            // 5. vの周囲の連・空点を調べる
-            //    Check surrounding Rens.
+            // 5. Check surrounding Rens.
             std::vector<int> my_rens;
 
             int64 lib_bits[6] = {0,0,0,0,0,0};
@@ -150,8 +143,7 @@ void FeedTensor::Set(Board& b, int nv) {
             sort(my_rens.begin(),my_rens.end());
             my_rens.erase(unique(my_rens.begin(),my_rens.end()),my_rens.end());
 
-            // 6. vに隣接する連のサイズ・呼吸点を調べる
-            //    Count size and number of liberty of the neighboring Rens.
+            // 6. Count size and number of liberty of the neighboring Rens.
             int cap_stone_cnt = 0;
             int my_stone_cnt = 1;
             std::vector<int> checked_ren_idxs;
@@ -159,10 +151,10 @@ void FeedTensor::Set(Board& b, int nv) {
             for (auto dv : VSHIFT) {
                 int v_nbr = v + dv;
 
-                // vの隣接交点が敵石. Opponent's stone.
+                // Opponent's stone.
                 if (b.color[v_nbr] == pl_color[1]) {
 
-                    // アタリかつ調べてない連か. If it is in Atari and not checked.
+                    // If it is in Atari and not checked.
                     if (b.ren[b.ren_idx[v_nbr]].IsAtari() &&
                         find(checked_ren_idxs.begin(), checked_ren_idxs.end(),b.ren_idx[v_nbr])==checked_ren_idxs.end())
                     {
@@ -185,10 +177,10 @@ void FeedTensor::Set(Board& b, int nv) {
 
                     }
                 }
-                // vの隣接交点が自石. Player's stone.
+                // Player's stone.
                 else if (b.color[v_nbr] == pl_color[0]) {
 
-                    // 調べてない連か. If not checked.
+                    // If not checked.
                     if (find(checked_ren_idxs.begin(),checked_ren_idxs.end(),b.ren_idx[v_nbr]) == checked_ren_idxs.end()) {
 
                         checked_ren_idxs.push_back(b.ren_idx[v_nbr]);
@@ -201,13 +193,12 @@ void FeedTensor::Set(Board& b, int nv) {
                 }
             }
 
-            // 7. capture size(CAPTURESIZE...CAPTURESIZE+8)を更新
-            //    Update capture size.
+            // 7. Update capture size.
             if (cap_stone_cnt != 0) {
                 feature[rv][CAPTURESIZE + std::min(7, cap_stone_cnt - 1)] = 1.0;
             }
 
-            lib_bits[etor[v]/64] &= ~(0x1ULL<<(etor[v]%64));    // vを除外. Exclude v.
+            lib_bits[etor[v]/64] &= ~(0x1ULL<<(etor[v]%64));    // Exclude v.
             int lib_cnt = 0;
             for (int k = 0; k < 6; ++k) {
                 if (lib_bits[k] != 0) {
@@ -215,26 +206,22 @@ void FeedTensor::Set(Board& b, int nv) {
                 }
             }
 
-            // 8. self atari size(SELFATARI..SELFATARI+8)を更新
-            //    Update self Atari size.
+            // 8. Update self Atari size.
             if (lib_cnt == 1) {
                 feature[rv][SELFATARI + std::min(7, my_stone_cnt - 1)] = 1.0;
             }
-            // 9. liberty after(LIBERTYAFTER...LIBERTYAFTER+8)を更新
-            //    Update liberty after.
+            // 9. Update liberty after.
             feature[rv][LIBERTYAFTER + std::min(7, lib_cnt - 1)] = 1.0;
         }
 #ifndef USE_52FEATURE
-        // 10. false eye(48)を更新
-        //     Update false eye (48).
+        // 10. Update false eye (48).
         if (v_color == 0 && b.IsFalseEye(v)) {
             feature[rv][FALSEEYE] = 1.0;
         }
 #endif //USE_52FEATURE
     }
 
-    // 11. ladder escape/capture (LADDERCAP-LADDERESC)を更新
-    //     Update ladder escape/capture.
+    // 11. Update ladder escape/capture.
     std::vector<int> ladder_list[2];
     if (SearchLadder(b, ladder_list)) {
         for (auto v : ladder_list[0]) {
@@ -266,7 +253,6 @@ bool IsFlagOn(const std::string& str) {
 
 
 /**
- *  学習用のバイナリを生成する
  *  Make data binary for supervised learning.
  */
 void MakeLearningData() {

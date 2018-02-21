@@ -42,7 +42,6 @@ std::string cfg_weightsfile = "";
 #endif
 
 /**
- *  弱いCASを繰り返して加算する double用
  *  Repeat weak CAS for floating-type addition.
  */
 template<typename T>
@@ -186,7 +185,7 @@ void Tree::Clear() {
             }
         }
     }
-    fin.close();  //ファイルを閉じる
+    fin.close();  
 #endif
 }
 
@@ -217,7 +216,6 @@ void Tree::InitBoard() {
 
 
 /**
- *  policy_queに局面を追加する
  *  Add new entry to policy_que.
  */
 void Tree::AddPolicyQue(int node_idx, Board& b) {
@@ -235,7 +233,6 @@ void Tree::AddPolicyQue(int node_idx, Board& b) {
 
 
 /**
- *  value_queに局面を追加する
  *  Add new entry to value_que.
  */
 void Tree::AddValueQue(std::vector<std::pair<int,int>>& upper_list, Board& b) {
@@ -275,14 +272,11 @@ void Tree::AddValueQue(std::vector<std::pair<int,int>>& upper_list, Board& b) {
 
 
 /**
- *  ノードを新規作成する
- *  既に登録されているときはそのindexを返す
- *
  *  Create a new Node and returns the index.
  */
 int Tree::CreateNode(Board& b) {
 
-    // 入力盤面のハッシュを求める. Calculate board hash.
+    // Calculate board hash.
     int64 hash_b = BoardHash(b);
     int node_idx;
 
@@ -293,14 +287,11 @@ int Tree::CreateNode(Board& b) {
 
             if (node_hash_list.find(hash_b) != node_hash_list.end()) {
 
-                // 別のスレッドでこの局面ノードを生成中
                 // Return -1 if another thread is creating this node.
                 if (node[node_hash_list[hash_b]].is_creating) return -1;
 
-                // 既に登録済のとき、そのindexを返す
                 // Return the index if the key is already registered.
                 else {
-                    // 盤面ハッシュが同一か確認
                     // Confirm whether the board hashes are the same.
                     if (node[node_hash_list[hash_b]].hash == hash_b &&
                         node[node_hash_list[hash_b]].move_cnt == b.move_cnt)
@@ -314,7 +305,6 @@ int Tree::CreateNode(Board& b) {
             node_idx = std::max(0, std::min(node_idx, node_limit - 1));
             pn = &node[node_idx];
 
-            // 別の登録がされているor作成中のとき、node_idxを変更
             // Update node_idx if another node is registered or been creating.
             while (pn->child_cnt != 0 || pn->is_creating) {
                 ++node_idx;
@@ -421,7 +411,7 @@ int Tree::CreateNode(Board& b) {
             new_child.move = prob_list[i].second;
             new_child.prob = prob_list[i].first;
 
-            // 子局面を登録. Register the child.
+            // Register the child.
             pn->children[i] = new_child;
             pn->child_cnt++;
         }
@@ -436,7 +426,6 @@ int Tree::CreateNode(Board& b) {
 
     AddPolicyQue(node_idx, b);
 
-    // 作成したノードのindexを返す
     // Return the Node index.
     return node_idx;
 
@@ -444,22 +433,19 @@ int Tree::CreateNode(Board& b) {
 
 
 /**
- *  ノードの確率分布をpolicy netに置き換える
  *  Update probability of node with that evaluated
  *  by the policy network.
  */
 void Tree::UpdateNodeProb(int node_idx, std::array<double, EBVCNT>& prob_list) {
 
-    // 1. node[node_idx]の確率分布をprob_listに更新
-    //    Replace probability of node[node_idx] with prob_list.
+    // 1. Replace probability of node[node_idx] with prob_list.
     Node* pn = &node[node_idx];
     for (int i = 0; i < BVCNT; ++i) {
         int v = rtoe[i];
         pn->prob[v] = prob_list[v];
     }
 
-    // 2. (prob,idx)のペアを降順にソートし、prob_orderを更新
-    //    Update prob_order after sorting.
+    // 2. Update prob_order after sorting.
     int child_cnt = pn->child_cnt.load();
     std::vector<std::pair<double, int>> prob_idx_pair;
     for (int i = 0, n = child_cnt-1; i < n; ++i) {
@@ -472,8 +458,7 @@ void Tree::UpdateNodeProb(int node_idx, std::array<double, EBVCNT>& prob_list) {
         pn->prob_order[i] = prob_idx_pair[i].second;
     }
 
-    // 3. LGRの着手をlgr.policyに登録
-    //    Register LGR move in lgr.policy.
+    // 3. Register LGR move in lgr.policy.
     if (lambda != 1.0) {
         std::array<int,4> lgr_seed = {pn->prev_ptn[0], pn->prev_move[0], pn->prev_ptn[1], pn->prev_move[1]};
         if (pn->children[pn->prob_order[0]].move < PASS)
@@ -487,7 +472,6 @@ void Tree::UpdateNodeProb(int node_idx, std::array<double, EBVCNT>& prob_list) {
 
 
 /**
- *  node[node_idx]以下に連なるノードのindexを収集する
  *  Collect all indexes of nodes under node[node_idx].
  */
 int Tree::CollectNodeIndex(int node_idx, int depth, std::unordered_set<int>& node_list) {
@@ -512,7 +496,6 @@ int Tree::CollectNodeIndex(int node_idx, int depth, std::unordered_set<int>& nod
             if (!(prev_move == PASS && next_move == PASS) &&
                 node_list.find((int)pc->next_idx) == node_list.end())
             {
-                // 次のノードが存在するときは再帰呼び出し.
                 // Call recursively if next node exits.
                 int tmp_depth = CollectNodeIndex((int)pc->next_idx, depth, node_list);
                 if (tmp_depth > max_depth) max_depth = tmp_depth;
@@ -524,22 +507,18 @@ int Tree::CollectNodeIndex(int node_idx, int depth, std::unordered_set<int>& nod
 
 
 /**
- *  ノード以下のインデックスを調べ、ノード使用率を減らす
  *  Delete indexes to reduce node usage rate. (30%-60%)
  */
 void Tree::DeleteNodeIndex(int node_idx) {
 
-    // 1. ノード使用率が50%未満なら削除しない
-    //    Do not delete nodes if node utilization is less than 50%.
+    // 1. Do not delete nodes if node utilization is less than 50%.
     if (node_cnt < 0.5 * node_limit) return;
 
-    // 2. node_idxに繋がるインデックスを調べる
-    //    Find indexes connecting to the root node.
+    // 2. Find indexes connecting to the root node.
     std::unordered_set<int> under_root;
     CollectNodeIndex(node_idx, 0, under_root);
 
-    // 3. ノード使用率が20%以下になるまで最古のノード手数を更新する
-    //    Update the oldest move count of the nodes until the node
+    // 3. Update the oldest move count of the nodes until the node
     //    usage becomes 20% or less.
     std::unordered_set<int> node_list(under_root);
 
@@ -562,8 +541,7 @@ void Tree::DeleteNodeIndex(int node_idx) {
         }
     }
 
-    // 4. node_listにない古いノードを削除
-    //    Delete old node not in node_list.
+    // 4. Delete old node not in node_list.
     {
         std::lock_guard<std::mutex> lock(mtx_node);
         for (int i = 0; i < node_limit; ++i) {
@@ -580,8 +558,7 @@ void Tree::DeleteNodeIndex(int node_idx) {
         }
     }
 
-    // 5. policy_queから削除
-    //    Remove entries from policy_que.
+    // 5. Remove entries from policy_que.
     std::deque<PolicyEntry> remain_pque;
     for (auto i:policy_que) {
         if (node_list.find(i.node_idx) != node_list.end()) {
@@ -591,8 +568,7 @@ void Tree::DeleteNodeIndex(int node_idx) {
     policy_que.swap(remain_pque);
     policy_que_cnt = (int)policy_que.size();
 
-    // 6. value_queから削除
-    //    Remove entries from value_que.
+    // 6. Remove entries from value_que.
     std::deque<ValueEntry> remain_vque;
     for (auto i: value_que) {
         if (node_list.find(i.node_idx[0]) != node_list.end()) {
@@ -602,7 +578,6 @@ void Tree::DeleteNodeIndex(int node_idx) {
             for (int j = 1, j_max = i.depth-1; j < j_max; ++j) {
                 if (node_list.find(i.node_idx[j]) == node_list.end())
                 {
-                    // 経路に削除されたノードが含まれるときは削除
                     is_remain = false;
                     break;
                 }
@@ -623,7 +598,6 @@ void Tree::DeleteNodeIndex(int node_idx) {
 }
 
 /**
- *  ルートノードを入力盤面のものに変更する
  *  Update the root node with the input board.
  */
 int Tree::UpdateRootNode(Board&b) {
@@ -640,10 +614,6 @@ int Tree::UpdateRootNode(Board&b) {
 
 
 /**
- *  探索木の中で、親ノード → 子ノードの移動を1回行う
- *  子ノードが存在しないとき、新規に作成するかを判断する
- *  末端ではプレイアウト・ValueNet評価を行い、その結果を返す
- *
  *  Proceed to a child node from the parent node.
  *  Create new node if there is no corresponding child node.
  *  At the leaf node, rollout and evaluation are performed,
@@ -658,8 +628,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
     Child *pc;
     bool use_rollout = (lambda != 1.0);
 
-    // 1. action valueが一番高い手を選ぶ
-    //    Choose the move with the highest action value.
+    // 1. Choose the move with the highest action value.
     int max_idx = 0;
     double max_avalue = -128;
 
@@ -673,8 +642,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 
     for (int i = 0, n = (int)pn->child_cnt; i < n; ++i) {
 
-        // a. 確率が高い順に調べる
-        //    Search in descending order of probability.
+        // a. Search in descending order of probability.
         int child_idx = pn->prob_order[i];
         pc = &pn->children[child_idx];
 
@@ -683,21 +651,19 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
         rollout_win = (double)pc->rollout_win;
         value_win = (double)pc->value_win;
 
-        // b. この手の勝率を計算する
-        //    Calculate winning rate of this move.
-        if (rollout_cnt == 0)     rollout_rate = pn_rollout_rate;
+        // b. Calculate winning rate of this move.
+        if (rollout_cnt == 0)    rollout_rate = pn_rollout_rate;
         else                     rollout_rate = rollout_win / rollout_cnt;
-        if (value_cnt == 0)       value_rate = pn_value_rate;
+        if (value_cnt == 0)      value_rate = pn_value_rate;
         else                     value_rate = value_win / value_cnt;
 
         rate = (1-lambda) * rollout_rate + lambda * value_rate;
 
-        // c. action valueを求める
-        //    Calculate action value.
+        // c. Calculate action value.
         game_cnt = use_rollout ? (double)pc->rollout_cnt : (double)pc->value_cnt;
         action_value = rate + cp * pc->prob * pn_root_game / (1 + game_cnt);
 
-        // d. max_idxを更新. Update max_idx.
+        // d. Update max_idx.
         if (action_value > max_avalue) {
             max_avalue = action_value;
             max_idx = child_idx;
@@ -705,8 +671,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
 
     }
 
-    // 2. action valueが最大の手を探索する
-    //    Search for the move with the maximum action value.
+    // 2. Search for the move with the maximum action value.
     pc = &pn->children[max_idx];
     int next_idx = pc->next_idx;
     bool is_next = pc->is_next;
@@ -722,14 +687,12 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
     serch_route.push_back(std::make_pair(node_idx, max_idx));
     int next_move = pc->move;
     int prev_move = b.prev_move[b.her];
-    // 勝敗結果の(0,±1)を(-0.5,+0.5)に補正するバイアス
     // Bias of winning rate that corrects result of (0, +/-1) to (-0.5, +0.5).
     double win_bias = (b.my == 0) ? -0.5 : 0.5;
 
-    // 3. LGRを更新. Update LGR of policy.
+    // 3. Update LGR of policy.
     if (use_rollout && !pn->is_visit && pn->is_policy_eval)
     {
-        // 現在のroot nodeになってから最初に探索するときに更新
         // Update when searching first after becoming the current root node.
         pn->is_visit = true;
         int max_prob_idx = pn->prob_order[0];
@@ -744,8 +707,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
         }
     }
 
-    // 4. プレイアウトをするかを判断
-    //    Check if rollout is necessary.
+    // 4. Check if rollout is necessary.
     bool need_rollout = false;
     int pc_game_cnt = use_rollout? (int)pc->rollout_cnt : (int)pc->value_cnt;
     if ((!is_next && pc_game_cnt < expand_cnt)    ||
@@ -756,36 +718,30 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
         need_rollout = true;
     }
 
-    // 5. ノード展開するかを判断
-    //    Check whether the next node can be expanded.
+    // 5. Check whether the next node can be expanded.
     bool expand_node = false;
     if (!is_next && !need_rollout)
     {
-        // 置換表が85%埋まっているときは新規作成しない
         // New node is not chreated when the transposition table is filled by 85%.
         if (node_cnt < 0.85 * node_limit /*&& pc->is_value_eval*/) expand_node = true;
         else need_rollout = true;
     }
 
-    // 6. 局面を進める. Play next_mvoe.
+    // 6. Play next_mvoe.
     b.PlayLegal(next_move);
 
-    // 7. ノードを展開する
-    //    Expand the next node.
+    // 7. Expand the next node.
     if (expand_node) {
         int next_idx_exp = CreateNode(b);
-        // たまに置換表が壊れて不正なindexを返すのでその対策
         if (next_idx_exp < 0 || next_idx_exp >= node_limit) need_rollout = true;
         else {
             npn = &node[next_idx_exp];
             pc->next_idx = next_idx_exp;
             pc->next_hash = (int64)npn->hash;
 
-            // pc -> npnへ対局情報を反映. Reflect game information.
             //npn->total_game_cnt += use_rollout? (int)pc->rollout_cnt : (int)pc->value_cnt;
             npn->rollout_cnt += (int)pc->rollout_cnt;
             npn->value_cnt += (int)pc->value_cnt;
-            // 手番が変わるので評価値を反転
             // Reverse evaluation value since turn changes.
             FetchAdd(&npn->rollout_win, -(double)pc->rollout_win);
             FetchAdd(&npn->value_win, -(double)pc->value_win);
@@ -795,7 +751,7 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
         }
     }
 
-    // 8. virtual lossを加える. Add virtual loss.
+    // 8. Add virtual loss.
     if (use_rollout) {
         FetchAdd(&pc->rollout_win, -(double)vloss_cnt);
         pc->rollout_cnt += vloss_cnt;
@@ -806,13 +762,11 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
         pn->total_game_cnt += vloss_cnt;
     }
 
-    // 9. 末端であればプレイアウトを行い、次のノードが存在すれば探索を進める
-    //    Roll out if it is the leaf node, otherwise proceed to the next node.
+    // 9. Roll out if it is the leaf node, otherwise proceed to the next node.
     double rollout_result = 0.0;
     if (need_rollout)
     {
-        // a-1. 局面が未評価であればキューに追加する
-        //      Add into the queue if the board is not evaluated.
+        // a-1. Add into the queue if the board is not evaluated.
         value_result = 0;
         if (pc->is_value_eval) {
             value_result = (double)pc->value;
@@ -821,20 +775,16 @@ double Tree::SearchBranch(Board& b, int node_idx, double& value_result,
         }
 
         if (use_rollout) {
-            // b. プレイアウトし、結果を[-1.0, 1.0]に規格化
-            //    Roll out and normalize the result to [-1.0, 1.0].
+            // b. Roll out and normalize the result to [-1.0, 1.0].
             rollout_result = -2.0 * ((double)PlayoutLGR(b, lgr_, komi) + win_bias);
         }
     } else {
-        // a-2. 次のnodeに進む
-        //      手番が変わっているので、結果も符号反転させる
-        //      Proceed to the next node and reverse the results.
+        // a-2. Proceed to the next node and reverse the results.
         rollout_result = -SearchBranch(b, (int)pc->next_idx, value_result, serch_route, lgr_, stat_);
         value_result *= -1.0;
     }
 
-    // 10. virtual lossを解消&勝率更新
-    //     Subtract virtual loss and update results.
+    // 10. Subtract virtual loss and update results.
     if (use_rollout) {
         FetchAdd(&pc->rollout_win, (double)vloss_cnt + rollout_result);
         pc->rollout_cnt += 1 - vloss_cnt;
@@ -920,14 +870,13 @@ std::string CoordinateString(int v) {
 }
 
 /**
- *  探索を繰り返し最善手を求める
  *  Repeat searching for the best move.
  */
 int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
                      bool is_errout, bool is_ponder)
 {
 
-    // 1. root nodeを更新. Update root node.
+    // 1. Update root node.
     if (b.move_cnt == 0) Tree::InitBoard();
     int node_idx = CreateNode(b);
     bool is_root_changed = (root_node_idx != node_idx);
@@ -936,8 +885,7 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
     eval_policy_cnt = 0;
     eval_value_cnt = 0;
 
-    // 2. 合法手がないときはパスを返す
-    //    Return pass if there is no legal move.
+    // 2. Return pass if there is no legal move.
     Node *pn = &node[root_node_idx];
     if (pn->child_cnt <= 1) {
         if (is_errout) {
@@ -950,8 +898,7 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
         return PASS;
     }
 
-    // 3. 定石があるとき、その手を返す
-    //    Return joseki if exists.
+    // 3. Return joseki if exists.
     if (!is_ponder && move_cnt < 32 && book.find(BoardHash(b)) != book.end()) {
         std::vector<int> moves;
         for (auto& m:book[BoardHash(b)]) moves.push_back(m);
@@ -970,19 +917,18 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
         }
     }
 
-    // 4. lambdaを進行度に合わせて調整 (0.8 -> 0.4)
-    //    Adjust lambda to progress.
+    // 4. Adjust lambda to progress.
     if (cfg_rollout) {
-        lambda = 0.8 - 0.4 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 160) / (360 - 160)));
+        // lambda = 0.8 - 0.4 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 160) / (360 - 160)));
+        lambda = 0.5;
     } else {
         lambda = 1.0;
     }
     // cp = 0.1 + 2.9 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 0) / (16 - 0)));
-    cp = 0.1;
+    cp = 1.0;
     bool use_rollout = (lambda != 1.0);
 
-    // 5. root nodeが未評価のとき、確率分布を評価する
-    //    If the root node is not evaluated, evaluate the probability.
+    // 5. If the root node is not evaluated, evaluate the probability.
     if (!pn->is_policy_eval || cfg_debug) {
         std::vector<std::array<double,EBVCNT>> prob_list;
         FeedTensor ft;
@@ -1003,30 +949,25 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
         }
     }
 
-    // 6. 子ノードを探索回数が多い順にソート
-    //    Sort child nodes in descending order of search count.
+    // 6. Sort child nodes in descending order of search count.
     std::vector<Child*> rc;
     SortChildren(pn, rc);
 
-    // 7. 探索回数が最大の子ノードの勝率を求める
-    //    Calculate the winning percentage of pc0.
+    // 7. Calculate the winning percentage of pc0.
     win_rate = BranchRate(rc[0]);
     int rc0_game_cnt = use_rollout? (int)rc[0]->rollout_cnt : (int)rc[0]->value_cnt;
     int rc1_game_cnt = use_rollout? (int)rc[1]->rollout_cnt : (int)rc[1]->value_cnt;
 
-    // 8-1. 持ち時間が残り少ないときは探索しない
-    //      Return best move without searching when time is running out.
+    // 8-1. Return best move without searching when time is running out.
     if (!is_ponder &&
         time_limit == 0.0 &&
         byoyomi == 0.0 &&
         left_time < cfg_emer_time)
     {
-        // a. 日本ルールのとき、もし直前の手がpassならpass
-        //    Return pass if the previous move is pass in Japanese rule.
+        // a. Return pass if the previous move is pass in Japanese rule.
         if (japanese_rule && b.prev_move[b.her] == PASS) return PASS;
 
-        // b. 最多試行の子ノードが1000未満のとき、policy netの最上位を返す
-        //    Return the move with highest probability if total game count is less than 1000.
+        // b. Return the move with highest probability if total game count is less than 1000.
         if (rc0_game_cnt < 1000) {
             int v = pn->children[pn->prob_order[0]].move;
             if (is_errout) {
@@ -1037,10 +978,10 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
             return v;
         }
     }
-    // 8-2. 並列探索を行う. Parallel search.
+    // 8-2. Parallel search.
     else
     {
-        // a. root以下に存在するノードを調べ、それ以外を消去
+        // a. Check the nodes that exist under root and erase others
         if (is_root_changed) DeleteNodeIndex(root_node_idx);
 
         bool stand_out =
@@ -1067,11 +1008,10 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
             double thinking_time = time_limit;
             bool can_extend = false;
 
-            // b. 最大思考時間を計算する
+            // b. Calculate maximum thinking time
             if (!is_ponder) {
                 if (time_limit == 0.0) {
                     if (main_time == 0.0) {
-                        // 持ち時間が秒読みだけのとき
                         // Set byoyomi if the main time is 0.
 #ifdef OnlineMatch
                         thinking_time = std::max(byoyomi - 3, 0.1);
@@ -1088,15 +1028,12 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
 #endif
                             can_extend = (extension_cnt > 0);
                         } else {
-                            // サドンデスのとき、残り時間から算出
-                            // 秒読みがあるとき、秒読みの1-1.5倍
                             // Calculate from remaining time if sudden death,
                             // otherwise set that of 1-1.5 times of byoyomi.
                             thinking_time = std::max(
                                         left_time/(55.0 + std::max(50.0 - b.move_cnt, 0.0)),
                                         byoyomi * (1.5 - (double)std::max(50.0 - b.move_cnt, 0.0) / 100)
                                         );
-                            // サドンデスでは、残り時間が15％以下のときは思考延長しない
                             // Do not extend thinking time if the remaining time is 10% or less.
                             can_extend = (left_time > main_time * 0.15) || (byoyomi >= 10);
                         }
@@ -1104,19 +1041,16 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
 
                 }
 
-                // どちらかの勝率が90%超のとき、1秒だけ思考する
                 // Think only for 1sec when either winning percentage is over 90%.
                 if (win_rate < 0.1 || win_rate > 0.9) thinking_time = std::min(thinking_time, 1.0);
                 can_extend &= (thinking_time > 1 && b.move_cnt > 3);
             }
 
-            // c. thread_cnt個のスレッドで並列探索を行う
-            //    Search in parallel with thread_cnt threads.
+            // c. Search in parallel with thread_cnt threads.
             ParallelSearch(thinking_time, b, is_ponder);
             SortChildren(pn, rc);
 
-            // d. 1位の手と2位の手の試行回数が1.5倍以内のとき、思考時間を延長する
-            //    Extend thinking time when the trial number of first move
+            // d. Extend thinking time when the trial number of first move
             //    and second move is close.
             if (!stop_think && can_extend) {
 
@@ -1142,11 +1076,10 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
 
             stop_think = false;
 
-            // e. 盤面の占有率を更新. Update statistics of the board.
+            // e. Update statistics of the board.
             if (pn->total_game_cnt - prev_game_cnt > 5000) stat -= prev_stat;
 
-            // f. 探索情報を出力する
-            //    Output search information.
+            // f. Output search information.
             auto t2 = std::chrono::system_clock::now();
             auto elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000;
             if (is_errout) {
@@ -1163,8 +1096,7 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
         }
     }
 
-    // 8. 直前の手がパスのとき自分もパスをするか調べる
-    //    Check whether pass should be returned. (Japanese rule)
+    // 8. Check whether pass should be returned. (Japanese rule)
     if (japanese_rule && b.prev_move[b.her] == PASS) {
         Board b_cpy;
         int win_cnt = 0;
@@ -1183,15 +1115,13 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
             }
         }
 
-        // 勝率7割以上のとき、パスを返す
         // Return pass if the winning rate > 65%.
         if ((double)win_cnt / playout_cnt > 0.65) {
             win_rate = (double)win_cnt / playout_cnt;
             return PASS;
         }
     }
-    // 9. 最善手がパスで結果が大差ないとき、パスを2番目の候補に
-    //    When the best move is pass and the result is not much different,
+    // 9. When the best move is pass and the result is not much different,
     //    return the second move. (Chinese rule)
     else if (!japanese_rule && rc[0]->move == PASS) {
         double  win_sign = rc[0]->rollout_win * rc[1]->rollout_win;
@@ -1200,11 +1130,10 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
         if (win_sign > 0) std::swap(rc[0], rc[1]);
     }
 
-    // 10. 勝率を更新. Update winning_rate.
+    // 10. Update winning_rate.
     win_rate = BranchRate(rc[0]);
 
-    // 11. 上位の子ノードの探索結果を出力する.
-    //     Output information of upper child nodes.
+    // 11. Output information of upper child nodes.
     if (is_errout) {
         PrintLog(log_file, "total games=%d, evaluated policy=%d(%d), value=%d(%d)\n",
                  (int)pn->total_game_cnt, eval_policy_cnt, (int)policy_que_cnt, eval_value_cnt, (int)value_que_cnt);
@@ -1217,7 +1146,6 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
 }
 
 /**
- *  スレッドで探索を繰り返す
  *  Repeat searching with a single thread.
  */
 void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_ponder) {
@@ -1263,13 +1191,11 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
         }
         ++loop_cnt;
 
-        // 64回ごとに探索を打ち切るかをチェック
         // Check whether to terminate the search every 64 times.
         if (loop_cnt % 64 == 0) {
             auto t2 = std::chrono::system_clock::now();
             auto elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() / 1000;
 
-            // 制限時間が経過したか、stop_thinkフラグが立ったとき探索終了
             // Terminate the search when the time limit has elapsed or stop_think flag is set.
             if (elapsed_time > time_limit || stop_think) {
                 stat_th -= initial_stat;
@@ -1312,7 +1238,6 @@ void Tree::ThreadSearchBranch(Board& b, double time_limit, int cpu_idx, bool is_
 }
 
 /**
- *  スレッドでpolicy/valueの評価を行う
  *  Evaluate policy and value of boards in a single thread.
  */
 void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
@@ -1333,7 +1258,7 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 
     for (;;) {
 
-        // 1. value_queを処理. Process value_que.
+        // 1. Process value_que.
         if (value_que_cnt > 0) {
             int eval_cnt = 0;
             {
@@ -1341,12 +1266,11 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
                 if (value_que_cnt > 0) {
                     eval_cnt = std::min(max_eval_value, (int)value_que_cnt);
 
-                    // a. vque_thにコピー. Copy partially to vque_th.
+                    // a. Copy partially to vque_th.
                     vque_th.resize(eval_cnt);
                     copy(value_que.begin(), value_que.begin() + eval_cnt, vque_th.begin());
 
-                    // b. value_queを先頭から削除.
-                    //    Remove value_que from the beginning.
+                    // b. Remove value_que from the beginning.
                     for (int i = 0; i < eval_cnt; ++i) value_que.pop_front();
                     value_que_cnt -= eval_cnt;
                 }
@@ -1369,17 +1293,8 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
                     } else {
                         Network::get_value_moves(ft_list, eval_list, Network::Ensemble::DIRECT, cfg_sym_idx);
                     }
-
-                    // Value debug
-                    if (cfg_debug) {
-                        for (int i = 0; i < eval_cnt; ++i) {
-                            printf(" got value:%5.2f", eval_list[i]);
-                        }
-                        printf("\n");
-                    }
                 
-                    // d. 上流ノードのvalue_winを全て更新する
-                    //    Update all value information of the upstream nodes.
+                    // d. Update all value information of the upstream nodes.
                     for (int i = 0; i < eval_cnt; ++i) {
 
                         int leaf_pl = ft_list[i].color;
@@ -1412,7 +1327,7 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
             }
         }
 
-        // 2. policy_queを処理. Process policy_que.
+        // 2. Process policy_que.
 #ifdef CPU_ONLY
         if (policy_que_cnt > 0 && mt_double(mt_32) < 0.25) {
 #else
@@ -1425,12 +1340,11 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
                     eval_cnt = std::min(max_eval_policy, (int)policy_que_cnt);
                     eval_policy_cnt += eval_cnt;
 
-                    // a. pque_thにコピー. Copy partially to pque_th.
+                    // a. Copy partially to pque_th.
                     pque_th.resize(eval_cnt);
                     copy(policy_que.begin(), policy_que.begin()+eval_cnt, pque_th.begin());
 
-                    // b. policy_queを先頭から削除.
-                    //    Remove policy_que from the beginning.
+                    // b. Remove policy_que from the beginning.
                     for (int i = 0; i < eval_cnt; ++i) policy_que.pop_front();
                     policy_que_cnt -= eval_cnt;
                 }
@@ -1450,15 +1364,14 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
                     Network::get_policy_moves(ft_list, prob_list, Network::Ensemble::DIRECT, cfg_sym_idx);
                 }
 
-                // d. ノードの確率分布を更新する. Update probability of nodes.
+                // d. Update probability of nodes.
                 for (int i = 0; i < eval_cnt; ++i) {
                     UpdateNodeProb(pque_th[i].node_idx, prob_list[i]);
                 }
             }
         }
 
-        // 3. 制限時間が経過したか、stop_thinkフラグが立ったとき評価終了
-        //    Terminate evaluation when the time limit has elapsed or stop_think flag is set.
+        // 3. Terminate evaluation when the time limit has elapsed or stop_think flag is set.
         auto t2 = std::chrono::system_clock::now();
         auto elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000;
         if (elapsed_time > time_limit || stop_think) {
@@ -1471,7 +1384,6 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
 }
 
 /**
- *  thread_cnt個のスレッドで並列探索を行う
  *  Search in parallel with thread_cnt threads.
  */
 void Tree::ParallelSearch(double time_limit, Board& b, bool is_ponder) {
@@ -1495,7 +1407,6 @@ void Tree::ParallelSearch(double time_limit, Board& b, bool is_ponder) {
 
 
 /**
- *  1000回プレイアウトを行い、最終結果を出力する
  *  Roll out 1000 times and output the final result.
  */
 void Tree::PrintResult(Board& b) {
@@ -1548,7 +1459,7 @@ std::string Tree::BestSequence(int node_idx, int head_move, int max_move) {
         }
         else break;
     }
-    // D4 ->D16->Q16->Q4 ->...
+    // D4->D16->Q16->Q4->...
     return seq;
 }
 

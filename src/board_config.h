@@ -2,10 +2,6 @@
 
 /*****************************************************
  *
- * 盤面サイズ、座標系の定義
- * 1路分の盤外拡張がなされた21x21の盤面の1次元座標系
- * 左下(0)→…→右下(20)→…→左上(420)→…→右上(440)
- *
  * Definition of board size, coordinate system
  * and conversion array.
  *
@@ -17,44 +13,34 @@
  *****************************************************/
 
 
-// 実盤面のサイズ
 // Size of real board.
 constexpr int BSIZE = 19;
 
-// 拡張盤面のサイズ
 // Size of extended board. = 21.
 constexpr int EBSIZE = BSIZE + 2;
 
-// 実盤面の交点数
 // Number of real-board vertexes. = 361.
 constexpr int BVCNT = BSIZE * BSIZE;
 
-// 拡張盤面の交点数
 // Number of extended-board vertexes. = 441.
 constexpr int EBVCNT = EBSIZE * EBSIZE;
 
-// パスの座標（ =  441）
-// 通常の盤面座標は [0, 440]の範囲を取る
 // Position index of pass move. = 441.
 // Normal positions range from 0 to 440.
 constexpr int PASS = EBVCNT;
 
-// Null座標. 初期化などに使用する (= 442)
 // Position index of 'null' move,
 // used for initialization etc. = 442.
 constexpr int VNULL = EBVCNT + 1;
 
-// デフォルトのコミ
 // Default Komi for the Chinese rule.
 constexpr double KOMI = 7.5;
 
-// 隣接する座標への移動量｛N, E, S, W｝
 // Shift amount to the next position. {N, E, S, W}
 constexpr int VSHIFT[4] = {EBSIZE, 1, -EBSIZE, -1};
 
 
 /**
- * 実盤面 -> 拡張盤面　の変換配列
  * Conversion array: real board -> extended board
  */
 constexpr int rtoe[BVCNT] = {
@@ -81,7 +67,6 @@ constexpr int rtoe[BVCNT] = {
 
 
 /**
- * 拡張盤面 -> 実盤面　の変換配列
  * Conversion array: extended board -> real board
  */
 constexpr int etor[EBVCNT] = {
@@ -110,7 +95,6 @@ constexpr int etor[EBVCNT] = {
 
 
 /**
- * 実盤面 -> x座標　の変換配列
  * Conversion array: real board -> column index (x-coordinate)
  */
 constexpr int rtox[BVCNT] = {
@@ -137,7 +121,6 @@ constexpr int rtox[BVCNT] = {
 
 
 /**
- * 実盤面 -> y座標　の変換配列
  * Conversion array: real board -> rank index (y-coordinate)
  */
 constexpr int rtoy[BVCNT] = {
@@ -164,7 +147,6 @@ constexpr int rtoy[BVCNT] = {
 
 
 /**
- * 拡張盤面 -> x座標　の変換配列
  * Conversion array: extended board -> column index (x-coordinate)
  */
 constexpr int etox[EBVCNT] = {
@@ -193,7 +175,6 @@ constexpr int etox[EBVCNT] = {
 
 
 /**
- * 拡張盤面 -> y座標　の変換配列
  * Conversion array: extended board -> rank index (y-coordinate)
  */
 constexpr int etoy[EBVCNT] = {
@@ -222,7 +203,6 @@ constexpr int etoy[EBVCNT] = {
 
 
 /**
- * xy座標 -> 実盤面　の変換配列
  * Conversion array: (x,y) -> real board
  */
 constexpr int xytor[BSIZE][BSIZE] = {
@@ -249,7 +229,6 @@ constexpr int xytor[BSIZE][BSIZE] = {
 
 
 /**
- * xy座標 -> 拡張盤面　の変換配列
  * Conversion array: (x,y) -> extended board
  */
 constexpr int xytoe[EBSIZE][EBSIZE] = {
@@ -278,16 +257,13 @@ constexpr int xytoe[EBSIZE][EBSIZE] = {
 
 
 /**
- * 対称変換のための配列
  * Conversion array for symmetrical operation.
  */
 struct SymmetricalVertex {
 
-    // 拡張座標の対称点
     // Symmetrical position for extended-board vertex.
     int ev[8][EBVCNT][2];
 
-    // 実座標の対称点
     // Symmetrical position for real-board vertex.
     int rv[8][BVCNT][2];
 

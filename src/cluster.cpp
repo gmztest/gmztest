@@ -15,15 +15,13 @@ int Process::Start(const char* const file, char* const argv[]) {
     int pipe_from[2];
     int pipe_to[2];
 
-    // 1. パイプの作成（親プロセス->子プロセス）
-    //    Create a pipe (parent process -> child process)
+    // 1. Create a pipe (parent process -> child process)
     if (pipe(pipe_from) < 0) {
         std::perror("process error on creating pipe_from.\n");
         return -1;
     }
 
-    // 2. パイプの作成（子プロセス->親プロセス）
-    //    Create a pipe (child process -> parent process)
+    // 2. Create a pipe (child process -> parent process)
     if (pipe(pipe_to) < 0) {
         std::perror("process error on creating pipe_to.\n");
         close(pipe_from[0]);
@@ -31,8 +29,7 @@ int Process::Start(const char* const file, char* const argv[]) {
         return -1;
     }
 
-    // 3. 子プロセスの作成
-    //    Create a child process.
+    // 3. Create a child process.
     pid_t process_id = fork();
     if (process_id < 0) {
         std::perror("fork() failed.\n");
@@ -44,36 +41,30 @@ int Process::Start(const char* const file, char* const argv[]) {
     }
 
     if (process_id == 0) {
-        // 4. 使用しないパイプを終了
-        //    Close unused pipes.
+        // 4. Close unused pipes.
         close(pipe_to[1]);
         close(pipe_from[0]);
 
-        // 5. 標準入力に割り当てる
-        //    Assign to standard input.
+        // 5. Assign to standard input.
         dup2(pipe_to[0], STDIN_FILENO);
         dup2(pipe_from[1], STDOUT_FILENO);
 
-        // 6. 割り当て済のパイプを閉じる
-        //    Close allocated pipes.
+        // 6. Close allocated pipes.
         close(pipe_to[0]);
         close(pipe_from[1]);
 
-        // 7. 子プロセスでプログラムを起動する
-        //    Start program in the child process
+        // 7. Start program in the child process
         if (execvp(file, argv) < 0) {
             std::perror("execvp() failed.\n");
             return -1;
         }
     }
 
-    // 8. パイプをファイルストリームとして開く
-    //    Open pipe as file stream.
+    // 8. Open pipe as file stream.
     stream_to = fdopen(pipe_to[1], "w");
     stream_from = fdopen(pipe_from[0], "r");
 
-    // 9. バッファリングをオフにする
-    //    Turn off buffering.
+    // 9. Turn off buffering.
     std::setvbuf(stream_to, NULL, _IONBF, 0);
     std::setvbuf(stream_from, NULL, _IONBF, 0);
 
@@ -102,7 +93,7 @@ void Cluster::LaunchWorkers() {
     process_list.clear();
     std::vector<bool> is_ready;
 
-    // 1. ワーカーを起動. Launch workers.
+    // 1. Launch workers.
     for (int i = 0; i < worker_cnt; ++i) {
         Process process_;
         // Use list in ~/.ssh/config
@@ -126,8 +117,7 @@ void Cluster::LaunchWorkers() {
         is_ready.push_back(false);
     }
 
-    // 2. ワーカーがすべて待機状態になるまで待つ
-    //    Wait until all workers are in standby state.
+    // 2. Wait until all workers are in standby state.
     auto t1 = std::chrono::system_clock::now();
     for (;;) {
         bool are_all_ready = true;
@@ -154,7 +144,6 @@ void Cluster::LaunchWorkers() {
 #endif
         auto t2 = std::chrono::system_clock::now();
         double elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000;
-        // 待っても応答がなければ次に進む
         // If not receive a response after 60 sec.
         if (elapsed_time > 60) {
             cerr << "worker launch time up." << endl;
@@ -162,8 +151,7 @@ void Cluster::LaunchWorkers() {
         }
     }
 
-    // 3. ワーカーにponderを開始させる
-    //    Make worker start ponder.
+    // 3. Make worker start ponder.
     for (int i = 0; i < worker_cnt; ++i) is_ready[i] = false;
     t1 = std::chrono::system_clock::now();
     for (;;) {
@@ -191,7 +179,6 @@ void Cluster::LaunchWorkers() {
 #endif
         auto t2 = std::chrono::system_clock::now();
         double elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000;
-        // 待っても応答がなければ次に進む
         // If not receive a response after 30 sec.
         if (elapsed_time > 30) {
             cerr << "worker ponder time up." << endl;

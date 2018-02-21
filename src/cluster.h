@@ -14,7 +14,6 @@
 
 
 /**
- *  •¶Žš—ñ‚ðdelim‚Å•ª‰ð‚·‚é
  *  Break character string with delimiter.
  */
 template <typename List>

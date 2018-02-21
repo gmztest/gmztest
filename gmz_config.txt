@@ -6,7 +6,7 @@
 
 ### Time contorol setting ###
 -main time[sec] =0
--byoyomi[sec] =5
+-byoyomi[sec] =3
 -emergency time[sec] =15
 
 ### Thinking setting ###
@@ -19,7 +19,7 @@
 
 ### File settings ###
 # Use 'self match' mode on console for debug.
--self match =off
+-self match =on
 -save log =on
 -pb path =pb
 -resume sgf path =
@@ -31,8 +31,8 @@
 -worker count =1
 
 ### LZ net ###
--weight file =weights.txt
--rollout =on
 -full tune =off
+-weight file =e11.txt
+-rollout =on
 -debug =on
 

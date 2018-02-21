@@ -24,7 +24,6 @@ inline int popcnt32twice(int64 bb) {
 #endif  /* defined (_M_IX86) */
 
 /**
- *  符号なし64bit整数のNTZ（右から続く0の個数）を求める関数
  *  Function for finding an unsigned 64-integer NTZ.
  *  Ex. 0x01011000 -> 3
  *      0x0 -> 64
@@ -52,16 +51,6 @@ extern const double semeai_w[2][2];
 
 /**************************************************************
  *
- *  「連」のクラス
- *
- *  隣接している石同士は一つの連を形成する.
- *  連に隣接する空点を「呼吸点」と呼び、
- *  呼吸点が0になるとその連は取られる.
- *
- *  呼吸点の座標は実盤面(19x19)のビットボード(64bit整数x6)で保持し、
- *  隣接する座標で石が置かれる/除かれる場合に呼吸点を増減する.
- *
- *
  *  Class of Ren.
  *
  *  Adjacent stones form a single stone string (=Ren).
@@ -77,14 +66,13 @@ extern const double semeai_w[2][2];
 class Ren {
 public:
 
-    // 呼吸点座標のビットボード
     // Bitboard of liberty positions.
     // [0] -> 0-63, [1] -> 64-127, ..., [5] -> 320-360
     int64 lib_bits[6];
 
-    int lib_atr;     // アタリの場合の呼吸点座標. The liberty position in case of Atari.
-    int lib_cnt;    // 呼吸点数. Number of liberty.
-    int size;        // 連を構成する石数. Number of stones.
+    int lib_atr;     // The liberty position in case of Atari.
+    int lib_cnt;    // Number of liberty.
+    int size;        // Number of stones.
 
     Ren() { Clear(); }
     Ren(const Ren& other) { *this = other; }
@@ -97,7 +85,6 @@ public:
         return *this;
     }
 
-    // 石のある地点の初期化
     // Initialize for stone.
     void Clear() {
         lib_cnt     = 0;
@@ -107,7 +94,6 @@ public:
         lib_bits[3] = lib_bits[4] = lib_bits[5] = 0;
     }
 
-    // 石のない地点の初期化（無効値）
     // Initialize for empty and outer boundary.
     void SetNull() {
         lib_cnt     = VNULL; //442
@@ -117,7 +103,6 @@ public:
         lib_bits[3] = lib_bits[4] = lib_bits[5] = 0;
     }
 
-    // 座標vに呼吸点を追加する
     // Add liberty at v.
     void AddLib(int v) {
         if (size == VNULL) return;
@@ -131,7 +116,6 @@ public:
         lib_atr = v;
     }
 
-    // 座標vの呼吸点を消去する
     // Delete liberty at v.
     void SubLib(int v) {
         if (size == VNULL) return;
@@ -152,7 +136,6 @@ public:
         }
     }
 
-    // 別の連otherと連結する
     // Merge with another Ren.
     void Merge(const Ren& other) {
         lib_cnt = 0;
@@ -172,19 +155,15 @@ public:
         size += other.size;
     }
 
-    // 呼吸点数が0か
     // Return whether this Ren is captured.
     bool IsCaptured() const { return lib_cnt == 0; }
 
-    // 呼吸点数が1か
     // Return whether this Ren is Atari.
     bool IsAtari() const { return lib_cnt == 1; }
 
-    // 呼吸点数が2か
     // Return whether this Ren is pre-Atari.
     bool IsPreAtari() const { return lib_cnt == 2; }
 
-    // アタリの連の呼吸点を返す
     // Return the liberty position of Ren in Atari.
     int GetAtari() const { return lib_atr; }
 
@@ -192,30 +171,6 @@ public:
 
 
 /*********************************************************************************
- *
- *  盤面のクラス
- *
- *  盤面のデータ構造は、盤外を含めた21x21=441点の一次元座標系で表現される.
- *  ある座標vは「石の種類」「3x3パターン」「連」「同一連の次の座標」の情報を持つ.
- *
- *  1. 石の種類 (例 color[v])
- *     座標vの石/空点/盤外の種類.
- *     空点->0, 盤外->1, 白->2, 黒->3
- *
- *  2. 3x3パターン (例 ptn[v])
- *     座標vを含む周囲3x3の石・呼吸点情報を持つPattern3x3クラス.
- *     合法手判定等をビット演算で高速に計算するために用いる.
- *
- *  3. 連（例 ren[ren_idx[v]]）
- *     座標vの連番号はren_idx[v]に格納される. 連番号は、連がmergeされるとき
- *     どちらかの番号に統一される. (初期値は ren_idx[v] = v)
- *     Renクラスは連の石数、呼吸点の管理に用いられる.
- *
- *  4. 同一連の次の座標（例 next_ren_v[v]）
- *     連の周囲の操作（隣接する3x3パターン更新など）に用いられる.
- *     次の座標情報は循環するので、どの点から参照してもよい.(v0->v1->...->v7->v0)
- *     サイズ1の連では　next_ren_v[v] = v　となる.
- *
  *
  *  Class of board.
  *
@@ -244,11 +199,9 @@ public:
  *********************************************************************************/
 class Board {
 private:
-    // 3x3パターンの変更フラグ
     // Flag indicating whether 3x3 pattern has been updated.
     bool is_ptn_updated[EBVCNT];
 
-    // 変更された3x3のパターンの座標　(座標、元のbf値)
     // List of (position, previous value of bf) of updated patterns.
     std::vector<std::pair<int,int>> updated_ptns;
 
@@ -274,96 +227,80 @@ private:
 
 public:
 
-    // 手番指標
     // Turn index. (0: white, 1: black)
     // if black's turn, (my, her) = (1, 0) else (0, 1).
     int my, her;
 
-    // 座標の状態　空点->0　盤外->1　白->2　黒->3
     // Stone color.
     // empty->0, outer boundary->1, white->2, black->3
     int color[EBVCNT];
 
-    // n手前のcolorの履歴
     // History of color information
     // prev_color[n]: color at (n+1) moves before
     int prev_color[7][EBVCNT];
 
-    // 空点の配列. [0, empty_cnt-1]の範囲で空点の座標を格納する
     // List of empty vertexes, containing their positions in range of [0, empty_cnt-1].
     // Ex. for (int i = 0; i < empty_cnt; ++i) v = empty[i]; ...
     int empty[BVCNT];
 
-    // 各点における空点番号.
-    // empty_idx[v] < empty_cnt ならば vは空点.
     // Empty vertex index of each position.
     // if empty_idx[v] < empty_cnt, v is empty.
     int empty_idx[EBVCNT];
 
-    // [0]: 白石の数　[1]: 黒石の数
     // [0]: number of white stones  [1]: number of black stones.
     int stone_cnt[2];
 
     // Number of empty vertexes.
     int empty_cnt;
 
-    // コウの着手禁止点の座標
     // Position of the illegal move of Ko.
     int ko;
 
-    // 連指標. Ren index.
+    // Ren index.
     int ren_idx[EBVCNT];
 
-    // 連指標に対応する連
     // Ren corresponding to the ren index.
     // Ex. ren[ren_idx[v]]
     Ren ren[EBVCNT];
 
-    // 同じ連に該当する次の座標
     // Next position of another stone in the Ren.
     int next_ren_v[EBVCNT];
 
-    // 手数. Number of the moves.
+    // Number of the moves.
     int move_cnt;
 
-    // 手順. History of the moves.
+    // History of the moves.
     std::vector<int> move_history;
 
-    // [0]: 白の直前の着手　[1]: 黒の直前の着手
     // [0]: white's previous move [1]: black's previous move.
     int prev_move[2];
 
     // Previous position of illegal move of Ko.
     int prev_ko;
 
-    // 今の着手で取られた石の座標.
     // List of stones removed in the current move.
     std::vector<int> removed_stones;
 
-    // 各点の実確率
     // Probability of each vertex.
     double prob[2][EBVCNT];
 
     // 3x3 patterns.
     Pattern3x3 ptn[EBVCNT];
 
-    // 直前・2手前の石を置く前の12点パターン
     // Twelve-point patterns around last and two moves before moves.
     Pattern3x3 prev_ptn[2];
 
-    // 直前に更新したレスポンスパターンの確率値
+    // The probability value of the response pattern that was just updated
     double prev_ptn_prob;
 
-    // ナカデやアタリを逃げる手など、高い確率がつきやすい手
     // Reflex move, such as Nakade or save stones in Atari.
     int response_move[4];
     std::vector<int> semeai_move[2];
 
-    // パスをした回数. (日本ルール用)
     // Number of pass. (for Japanese rule)
     int pass_cnt[2];
 
-    // 行ごとの確率の小計. Sum of probability for each rank.
+    // Sum of probability for each rank.
     double sum_prob_rank[2][BSIZE];
 
     Board();

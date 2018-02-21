@@ -13,7 +13,6 @@
 #include "feed_tensor.h"
 #include "node.h"
 
-// #include "nueral_net.h"
 #include "lznet/lz_net.h"
 
 // Flag to use only CPU.
@@ -21,11 +20,6 @@
 //#define OnlineMatch
 
 /**************************************************************
- *
- *  探索木のクラス.
- *
- *  置換表に基づき、局面の評価や探索木の拡張を行う.
- *  ニューラルネットによる局面評価とプレイアウトは非同期に実行される.
  *
  *  Class of search tree.
  *
@@ -37,11 +31,9 @@
 class Tree {
 public:
 
-    // 素数個のノードから構成される置換表.
     // Transposition table consisting of prime number of Node.
     std::vector<Node> node;
 
-    // 置換表のサイズ
     // Size of the transposition table.
 #ifndef CPU_ONLY
     //const int node_limit = 524297;   // ~21GB
@@ -58,11 +50,9 @@ public:
     int node_depth;        // Maximum depth of the tree.
     int root_node_idx;     // Index of the root node.
 
-    // ValueNet評価を待つ入力テンソルの双方向キュー
     // Double-ended queue for the input tensor of the value network.
     std::deque<ValueEntry> value_que;
 
-    // PolicyNet評価を待つ入力テンソルの双方向キュー
     // Double-ended queue for the input tensor of the policy network.
     std::deque<PolicyEntry> policy_que;
 

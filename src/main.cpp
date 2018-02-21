@@ -43,7 +43,6 @@ void ReadConfiguration(int argc, char **argv) {
         }
     }
 
-
     ImportProbDist();
     ImportProbPtn3x3();
     std::string config_path = working_dir + "gmz_config.txt";

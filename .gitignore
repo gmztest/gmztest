@@ -6,4 +6,4 @@ src/lznet/*.d
 src/lznet/*.o
 remotetest
 gmz_opencl_tuning
-
+e11.txt

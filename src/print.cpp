@@ -10,12 +10,10 @@ using std::endl;
 using std::string;
 
 /**
- *  盤面をエラーコンソールに表示する
  *  Display the board in stderr.
  */
 void PrintBoard(Board& b, int v) {
 
-    // x座標を出力
     // Output captions of x coordinate.
     string str_x = "ABCDEFGHJKLMNOPQRST";
     cerr << "  ";
@@ -24,10 +22,8 @@ void PrintBoard(Board& b, int v) {
 
     for (int y = 0; y < BSIZE; ++y) {
 
-        // 一桁のときインデントを追加
         // Add indent when single digit.
         if (BSIZE - y < 10) cerr << " ";
-        // 左下が(A,1)のため、y座標を逆順で出力する
         // Output y coordinate in reverse order because the lower left is (A,1).
         cerr << BSIZE - y;
 
@@ -41,10 +37,8 @@ void PrintBoard(Board& b, int v) {
             }
 
             if (v == ev) {
-                // 直前の着手が白
                 // When previous move is white.
                 if (b.my == 1) cerr << "[O]";
-                // 直前の着手が黒
                 // When previous move is black.
                 else cerr << "[X]";
             }
@@ -66,16 +60,13 @@ void PrintBoard(Board& b, int v) {
 }
 
 /**
- *  盤面をファイルに出力する.
  *  Output the board to the file.
  */
 void PrintBoard(Board& b, int v, std::ofstream* log_file) {
 
-    //出力するファイルを開く
     std::ofstream& ofs = *log_file;
     if (ofs.fail()) return;
 
-    // x座標を出力
     // Output captions of x coordinate.
     string str_x = "ABCDEFGHJKLMNOPQRST";
     ofs << "  ";
@@ -84,10 +75,8 @@ void PrintBoard(Board& b, int v, std::ofstream* log_file) {
 
     for (int y = 0; y < BSIZE; ++y) {
 
-        // 一桁のときインデントを追加
         // Add indent when single digit.
         if (BSIZE - y < 10) ofs << " ";
-        // 左下が(A,1)のため、y座標を逆順で出力する
         // Output y coordinate in reverse order because the lower left is (A,1).
         ofs << BSIZE - y;
 
@@ -101,10 +90,8 @@ void PrintBoard(Board& b, int v, std::ofstream* log_file) {
             }
 
             if (v == ev) {
-                // 直前の着手が白
                 // When previous move is white.
                 if (b.my == 1) ofs << "[O]";
-                // 直前の着手が黒
                 // When previous move is black.
                 else ofs << "[X]";
             }
@@ -131,7 +118,6 @@ void PrintEF(std::string str, std::ofstream& ofs) {
 }
 
 /**
- *  最終結果を出力する
  *  Output the final score.
  */
 void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
@@ -140,11 +126,9 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
 
     std::ofstream& ofs = *log_file;
 
-    // 1. 死石を表示する
-    //    Display dead stones.
+    // 1. Display dead stones.
     PrintEF("\ndead stones ([ ] = dead)\n", ofs);
 
-    // x座標を出力
     // Output captions of x coordinate.
     string str_x = "ABCDEFGHJKLMNOPQRST";
     PrintEF("  ", ofs);
@@ -156,7 +140,6 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
 
     for (int y = 0; y < BSIZE; ++y) {
 
-        // 一桁のときインデントを追加
         // Add indent when single digit.
         if (BSIZE - y < 10) PrintEF(" " + std::to_string(BSIZE - y), ofs);
         else PrintEF(std::to_string(BSIZE - y), ofs);
@@ -170,7 +153,6 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
                 is_star = true;
             }
 
-            // vにおける占有率が50%未満のときは死石
             // Dead stone if occupancy is less than 50%.
             if (b.color[v] == 2 && (double)owner_cnt[0][v]/game_cnt[2] < 0.5) {
                 PrintEF("[O]", ofs);
@@ -199,8 +181,7 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
     }
     PrintEF("\n", ofs);
 
-    // 2. アゲハマを計算する
-    //    Count taken stones for Japanese rule.
+    // 2. Count taken stones for Japanese rule.
     int score_jp[2] = {0, 0};
     int score_cn[2] = {0, 0};
     int agehama[2];
@@ -209,11 +190,9 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
         agehama[i] += int(i == 1)*int(b.move_cnt % 2 == 1) - b.pass_cnt[i];
     }
 
-    // 3. 地を表示する
-    //    Display occupied areas.
+    // 3. Display occupied areas.
     PrintEF("\narea ([ ] = black area, ? ? = unknown)\n", ofs);
 
-    // x座標を出力
     // Output captions of x coordinate.
     PrintEF("  ", ofs);
     for (int x = 0; x < BSIZE; ++x) {
@@ -224,7 +203,6 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
 
     for (int y = 0; y < BSIZE; ++y) {
 
-        // 一桁のときインデントを追加
         // Add indent when single digit.
         if (BSIZE - y < 10) PrintEF(" " + std::to_string(BSIZE - y), ofs);
         else PrintEF(std::to_string(BSIZE - y), ofs);
@@ -238,13 +216,11 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
                 is_star = true;
             }
 
-            // vにおける白の占有率が50%以上
             // When white occupancy is more than 50%.
             if ((double)owner_cnt[0][v]/game_cnt[2] > 0.5) {
                 if (b.color[v] == 2) PrintEF(" O ", ofs);
                 else if (b.color[v] == 3) {
                     PrintEF(" X ", ofs);
-                    // 日本ルールで地とアゲハマに加える
                     // For Japanese rule.
                     ++agehama[1];
                     ++score_jp[0];
@@ -256,12 +232,10 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
 
                 ++score_cn[0];
             }
-            // vにおける黒の占有率が50%以上
             // When black occupancy is more than 50%.
             else if ((double)owner_cnt[1][v]/game_cnt[2] > 0.5) {
                 if (b.color[v] == 2) {
                     PrintEF("[O]", ofs);
-                    // 日本ルールで地とアゲハマに加える
                     // For Japanese rule.
                     ++agehama[0];
                     ++score_jp[1];
@@ -275,7 +249,6 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
 
                 ++score_cn[1];
             }
-            // どちらの地か不明
             // Unknown area.
             else if (b.color[v] == 2) {
                 PrintEF("?O?", ofs);
@@ -301,8 +274,7 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
     }
     PrintEF("\n", ofs);
 
-    // 4. 結果
-    //    Show final results.
+    // 4. Show final results.
     string str_win_pl = win_pl==0 ? "W+":"B+";
 
     double abs_score_jp = std::abs((score_jp[1]-agehama[1])-(score_jp[0]-agehama[0])-komi);
@@ -325,12 +297,10 @@ void PrintFinalScore(Board& b, int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT],
 
 
 /**
- *  占有率を表示する
  *  Display occupancy of the vertexes in stderr.
  */
 void PrintOccupancy(int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT]) {
 
-    // x座標を出力
     // Output captions of x coordinate.
     string str_x = "ABCDEFGHJKLMNOPQRST";
     cerr << "  ";
@@ -339,30 +309,24 @@ void PrintOccupancy(int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT]) {
 
     for (int y = 0; y < BSIZE; ++y) {
 
-        // 一桁のときインデントを追加
         // Add indent when single digit.
         if (BSIZE - y < 10) cerr << " ";
-        // 左下が(A,1)のため、y座標を逆順で出力する
         // Output y coordinate in reverse order because the lower left is (A,1).
         cerr << BSIZE - y;
 
         for (int x = 0; x < BSIZE; ++x) {
             int v = rtoe[xytor[x][BSIZE - 1 - y]];
 
-            // 黒の占有率
             // Occupancy of black stones.
             double black_ratio = (double)owner_cnt[1][v] / game_cnt[2];
-            // 0-9の整数に切り上げ
             // Round up to integer [0,9]
             int disp_ratio = (int)round(black_ratio * 9);
 
 
             if (black_ratio >= 0.5) {
-                // 黒の占有率が50%以上
                 // When black occupancy is more than 50%.
                 cerr << "[" << disp_ratio << "]";
             } else {
-                // 白の占有率が50%以上
                 // When white occupancy is more than 50%.
                 cerr << " " << disp_ratio << " ";
             }
@@ -381,13 +345,11 @@ void PrintOccupancy(int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT]) {
 
 
 /**
- *  占有率を表示する
  *  Write occupancy of the vertexes in file.
  */
 void PrintOccupancy(int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT], std::ofstream* log_file) {
 
     std::ofstream& ofs = *log_file;
-    // x座標を出力
     // Output captions of x coordinate.
     string str_x = "ABCDEFGHJKLMNOPQRST";
     ofs << "  ";
@@ -396,30 +358,24 @@ void PrintOccupancy(int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT], std::ofstre
 
     for (int y = 0; y < BSIZE; ++y) {
 
-        // 一桁のときインデントを追加
         // Add indent when single digit.
         if (BSIZE - y < 10) ofs << " ";
-        // 左下が(A,1)のため、y座標を逆順で出力する
         // Output y coordinate in reverse order because the lower left is (A,1).
         ofs << BSIZE - y;
 
         for (int x = 0; x < BSIZE; ++x) {
             int v = rtoe[xytor[x][BSIZE - 1 - y]];
 
-            // 黒の占有率
             // Occupancy of black stones.
             double black_ratio = (double)owner_cnt[1][v] / game_cnt[2];
-            // 0-9の整数に切り上げ
             // Round up to integer [0,9]
             int disp_ratio = (int)round(black_ratio * 9);
 
 
             if (black_ratio >= 0.5) {
-                // 黒の占有率が50%以上
                 // When black occupancy is more than 50%.
                 ofs << "[" << disp_ratio << "]";
             } else {
-                // 白の占有率が50%以上
                 // When white occupancy is more than 50%.
                 ofs << " " << disp_ratio << " ";
             }
@@ -438,12 +394,10 @@ void PrintOccupancy(int (&game_cnt)[3], int (&owner_cnt)[2][EBVCNT], std::ofstre
 
 
 /**
- *  確率分布をエラーコンソールに表示する
  *  Display the probability distribution in stderr.
  */
 void PrintProb(Board& b, std::array < float,BVCNT>& prob) {
 
-    // x座標を出力
     // Output captions of x coordinate.
     string str_x = "ABCDEFGHJKLMNOPQRST";
     cerr << "  ";
@@ -457,10 +411,8 @@ void PrintProb(Board& b, std::array < float,BVCNT>& prob) {
 
     for (int y = 0; y < BSIZE; ++y) {
 
-        // 一桁のときインデントを追加
         // Add indent when single digit.
         if (BSIZE - y < 10) cerr << " ";
-        // 左下が(A,1)のため、y座標を逆順で出力する
         // Output y coordinate in reverse order because the lower left is (A,1).
         cerr << BSIZE - y;
 

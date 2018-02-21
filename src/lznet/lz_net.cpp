@@ -1051,7 +1051,7 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
         for (int a = 0; a < 17; ++a) {
             myprintf("Tensor %d\n", a);
             for (int b = 17; b >= 0; --b) {
-                for (int c =0; c < 19; ++c) {
+                for (int c = 0; c < 19; ++c) {
                     float mv = ft.feature[b*19+c][a];
                     if (mv > 0.1) {
                         myprintf("\033[41m%4.1f\033[0m", mv);
@@ -1069,7 +1069,7 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
         for (int a = 0; a < 18; ++a) {
             myprintf("Plane %d\n", a);
             for (int b = 18; b >= 0; --b) {
-                for (int c =0; c < 19; ++c) {
+                for (int c = 0; c < 19; ++c) {
                     float mv = planes[a][b*19+c];
                     if (mv > 0.1) {
                         myprintf("\033[41m%4.1f\033[0m", mv);

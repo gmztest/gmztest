@@ -10,10 +10,6 @@
 bool japanese_rule = false;
 
 /**
- *  終局図の勝敗を返す
- *  黒勝->±1、白勝->0
- *  すべての石を打ち上げている前提
- *
  *  Return the result of the board in the end of the game.
  *  white wins: 0, black wins: 1 or -1.
  *  Before calling this function, both players need to play
@@ -25,11 +21,10 @@ int Win(Board& b, int pl, double komi) {
     std::array<bool, EBVCNT> visited;
     std::fill(visited.begin(), visited.end(), false);
 
-    // セキがあるか確認. Check Seki.
+    // Check Seki.
     for (int i = 0, i_max=b.empty_cnt; i < i_max; ++i) {
         int v = b.empty[i];
         if (b.IsSeki(v) && !visited[v]) {
-            // 隅の曲がり四目か確認.
             // Check whether it is corner bent fours.
             int ren_idx[2] = {0,0};
             forEach4Nbr(v, v_nbr2, {
@@ -54,7 +49,6 @@ int Win(Board& b, int pl, double komi) {
                         {
                             bool is_not_bnt = false;
                             forEach4Nbr(v_tmp, v_nbr1, {
-                                // 敵石のとき、曲がり4目ではない
                                 // If the neighboring stone is an opponnent's one.
                                 is_not_bnt |= (b.color[v_nbr1] == int(j == 0) + 2);
                             });
@@ -66,14 +60,13 @@ int Win(Board& b, int pl, double komi) {
                     } while (v_tmp != ren_idx[j]);
 
                     if (is_edge && is_conner) {
-                        // 曲がり四目のとき、4目側の地とする
                         // Count all stones as that of the player of the bent fours.
                         score[j] += b.ren[ren_idx[0]].size + b.ren[ren_idx[1]].size + 2.0;
                         is_bent4 = true;
                     }
                 }
             }
-            // visitedを更新. Update visited.
+            // Update visited.
             int64 lib_bit;
             for (int i = 0; i < 6; ++i) {
                 lib_bit = b.ren[ren_idx[0]].lib_bits[i];
@@ -85,7 +78,7 @@ int Win(Board& b, int pl, double komi) {
                     lib_bit ^= (0x1ULL << ntz);
                 }
             }
-            // 曲がり四目のとき. If it bent fours exist.
+            // If it bent fours exist.
             if (is_bent4) {
                 int v_tmp = ren_idx[0];
                 do {
@@ -115,22 +108,16 @@ int Win(Board& b, int pl, double komi) {
         }
     }
 
-    // 白黒パス回数の差、黒が最後に着手で+1
     // Correction factor of PASS. Add one if the last move is black.
     int pass_corr = b.pass_cnt[0] - b.pass_cnt[1] + int((b.move_cnt%2)!=0);
     double abs_score = score[1] - score[0] - komi - pass_corr * int(japanese_rule);
 
-    // 白勝ち->0, 黒番黒勝ち->1、白番黒勝ち-> -1を返す
     // Return 0 if white wins, 1 if black wins and it's black's turn and else -1.
     return int(abs_score > 0)*(int(pl == 1) - int(pl == 0));
 
 }
 
 /**
- *  終局図の勝敗を返す
- *  黒勝->±1、白勝->0
- *  盤面の占有率も更新する
- *
  *  Return the result of the board in the end of the game.
  *  white wins: 0, black wins: 1 or -1.
  *  Before calling this function, both players need to play
@@ -146,11 +133,10 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
     std::fill(is_stone[0].begin(), is_stone[0].end(), false);
     std::fill(is_stone[1].begin(), is_stone[1].end(), false);
 
-    // セキがあるか確認. Check Seki.
+    // Check Seki.
     for (int i = 0, i_max=b.empty_cnt; i < i_max; ++i) {
         int v = b.empty[i];
         if (b.IsSeki(v) && !visited[v]) {
-            // 隅の曲がり四目か確認.
             // Check whether it is corner bent fours.
             int ren_idx[2] = {0,0};
             forEach4Nbr(v, v_nbr2, {
@@ -175,7 +161,6 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
 
                             bool is_not_bnt = false;
                             forEach4Nbr(v_tmp, v_nbr1, {
-                                // 敵石のとき、曲がり4目ではない
                                 // If the neighboring stone is an opponnent's one.
                                 is_not_bnt |= (b.color[v_nbr1] == int(j == 0) + 2);
                             });
@@ -187,14 +172,13 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
                     } while (v_tmp != ren_idx[j]);
 
                     if (is_edge && is_conner) {
-                        // 曲がり四目のとき、4目側の地とする
                         // Count all stones as that of the player of the bent fours.
                         score[j] += b.ren[ren_idx[0]].size + b.ren[ren_idx[1]].size + 2.0;
                         bnd_pl = j;
                     }
                 }
             }
-            // visitedを更新. Update visited.
+            // Update visited.
             int64 lib_bit;
             for (int i = 0; i < 6; ++i) {
                 lib_bit = b.ren[ren_idx[0]].lib_bits[i];
@@ -251,7 +235,6 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
         }
     }
 
-    // 白黒パス回数の差、黒が最後に着手で+1
     // Correction factor of PASS. Add one if the last move is black.
     int pass_corr = b.pass_cnt[0] - b.pass_cnt[1] + int((b.move_cnt%2)!=0);
     double abs_score = score[1] - score[0] - komi - pass_corr * int(japanese_rule);
@@ -271,16 +254,12 @@ int Win(Board& b, int pl, Statistics& stat, double komi) {
     }
     ++stat.game[2];
 
-    // 白勝ち->0, 黒番黒勝ち->1、白番黒勝ち-> -1を返す
     // Returns 0 if white wins, 1 if black wins and it's black's turn and else -1.
     return int(abs_score > 0)*(int(pl == 1) - int(pl == 0));
 
 }
 
 /**
- *  終局図のスコアを返す
- *  黒勝ち->+score 白勝ち->-score
- *
  *  Return the score of the board in the end of the game.
  *  white wins: -score, black wins: +score.
  */
@@ -290,11 +269,10 @@ double Score(Board& b, double komi) {
     std::array<bool, EBVCNT> visited;
     std::fill(visited.begin(), visited.end(), false);
 
-    // セキがあるか確認. Check Seki.
+    // Check Seki.
     for (int i = 0, i_max=b.empty_cnt; i < i_max; ++i) {
         int v = b.empty[i];
         if (b.IsSeki(v) && !visited[v]) {
-            // 隅の曲がり四目か確認.
             // Check whether it is corner bent fours.
             int ren_idx[2] = {0,0};
             forEach4Nbr(v, v_nbr2, {
@@ -320,7 +298,6 @@ double Score(Board& b, double komi) {
                         {
                             bool is_not_bnt = false;
                             forEach4Nbr(v_tmp, v_nbr1, {
-                                // 敵石のとき、曲がり4目ではない
                                 // If the neighboring stone is an opponnent's one.
                                 is_not_bnt |= (b.color[v_nbr1] == int(j == 0) + 2);
                             });
@@ -332,14 +309,13 @@ double Score(Board& b, double komi) {
                     } while (v_tmp != ren_idx[j]);
 
                     if (is_edge && is_conner) {
-                        // 曲がり四目のとき、4目側の地とする
                         // Count all stones as that of the player of the bent fours.
                         score[j] += b.ren[ren_idx[0]].size + b.ren[ren_idx[1]].size + 2.0;
                         bnd_pl = j;
                     }
                 }
             }
-            // visitedを更新. Update visited.
+            // Update visited.
             int64 lib_bit;
             for (int i = 0; i < 6; ++i) {
                 lib_bit = b.ren[ren_idx[0]].lib_bits[i];
@@ -381,7 +357,6 @@ double Score(Board& b, double komi) {
         }
     }
 
-    // 白黒パス回数の差、黒が最後に着手で+1
     // Correction factor of PASS. Add one if the last move is black.
     int pass_corr = b.pass_cnt[0] - b.pass_cnt[1] + int((b.move_cnt%2)!=0);
     double abs_score = score[1] - score[0] - komi - pass_corr * int(japanese_rule);
@@ -391,9 +366,6 @@ double Score(Board& b, double komi) {
 }
 
 /**
- *  終局まで着手を繰り返し、勝敗を返す
- *  黒勝->±1、白勝->0
- *
  *  Play until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
  */
@@ -405,7 +377,6 @@ int Playout(Board& b, double komi) {
 
     while (b.move_cnt <= 720) {
         next_move = b.SelectMove();
-        // 2手連続でパスの場合、終局．
         // Break in case of 2 consecutive pass.
         if (next_move == PASS && prev_move == PASS) break;
         prev_move = next_move;
@@ -424,9 +395,6 @@ int Playout(Board& b, double komi) {
 }
 
 /**
- *  終局までランダムな着手を繰り返し、勝敗を返す
- *  黒勝->±1、白勝->0
- *
  *  Play with random moves until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
  */
@@ -438,7 +406,6 @@ int PlayoutRandom(Board& b, double komi) {
 
     while (b.move_cnt <= 720) {
         next_move = b.SelectRandomMove();
-        // 2手連続でパスの場合、終局．
         // Break in case of 2 consecutive pass.
         if (next_move == PASS && prev_move == PASS) break;
         prev_move = next_move;
@@ -450,9 +417,6 @@ int PlayoutRandom(Board& b, double komi) {
 }
 
 /**
- *  Last Good Replyありでプレイアウトを行い、勝敗を返す
- *  黒勝->±1、白勝->0
- *
  *  Play with 'Last Good Reply' until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
  */
@@ -474,13 +438,11 @@ int PlayoutLGR(Board& b, LGR& lgr, double komi)
         lgr_seed[2] = b.prev_ptn[1].bf;
         lgr_seed[3] = b.prev_move[b.my];
 
-        // ナカデで石を取られたとき、急所に打つ
         // Forced move if removed stones is Nakade.
         if (b.response_move[0] != VNULL) {
             next_move = b.response_move[0];
             b.PlayLegal(next_move);
         } else {
-            // lgr.policyに含まれる
             // Check whether lgr_seed is included in lgr.policy.
             auto itr = lgr.policy[b.my].find(lgr_seed);
             int v = VNULL;
@@ -508,7 +470,6 @@ int PlayoutLGR(Board& b, LGR& lgr, double komi)
 
             next_move = b.SelectMove();
 
-            // update_vの手の確率を元に戻す
             // Restore probability.
             for (int i = 0; i < 2; ++i) {
                 if (update_v[i] != VNULL) {
@@ -528,7 +489,6 @@ int PlayoutLGR(Board& b, LGR& lgr, double komi)
             lgr_rollout_add[b.her].push_back(lgr_rollout_seed);
         }
 
-        // 2手連続でパスの場合、終局
         // Break in case of 2 consecutive pass.
         if (next_move == PASS && prev_move == PASS) break;
         prev_move = next_move;
@@ -555,17 +515,12 @@ int PlayoutLGR(Board& b, LGR& lgr, double komi)
         }
     }
 
-    // 終局図の勝敗を返す
     // Return the result.
     return win;
 
 }
 
 /**
- *  Last Good Replyありでプレイアウトを行い、勝敗を返す
- *  黒勝->±1、白勝->0
- *  盤面の占有率も更新する
- *
  *  Play with 'Last Good Reply' until the end and returns the result.
  *  white wins: 0, black wins: 1 or -1.
  *  Updates game_cnt, stone_cnt and owner_cnt at the same time.
@@ -587,7 +542,6 @@ int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi) {
         lgr_seed[2] = b.prev_ptn[1].bf;
         lgr_seed[3] = b.prev_move[b.my];
 
-        // ナカデで石を取られたとき、急所に打つ
         // Forced move if removed stones is Nakade.
         if (b.response_move[0] != VNULL) {
             next_move = b.response_move[0];
@@ -609,7 +563,6 @@ int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi) {
             if (lgr_seed[1] < PASS && lgr_seed[3] < PASS) {
                 v = lgr.rollout[b.my][lgr_seed[1]][lgr_seed[3]];
                 if (v != VNULL) {
-                    //lgr_rolloutの手の確率をx倍に
                     if (b.prob[b.my][v] != 0) {
                         b.ReplaceProb(b.my, v, b.prob[b.my][v] * update_p[1]);
                         update_v[1] = v;
@@ -619,7 +572,6 @@ int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi) {
 
             next_move = b.SelectMove();
 
-            // update_vの手の確率を元に戻す
             // Restore probability.
             for (int i = 0; i < 2; ++i) {
                 if (update_v[i] != VNULL) {
@@ -638,7 +590,6 @@ int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi) {
             lgr_rollout_add[b.her].push_back(lgr_rollout_seed);
         }
 
-        // 2手連続でパスの場合、終局
         // Break in case of 2 consecutive pass.
         if (next_move == PASS && prev_move == PASS) break;
         prev_move = next_move;
@@ -665,7 +616,6 @@ int PlayoutLGR(Board& b, LGR& lgr, Statistics& stat, double komi) {
         }
     }
 
-    // 終局図の勝敗を返す
     // Return the result.
     return win;
 

@@ -14,7 +14,6 @@ extern std::uniform_int_distribution<int> mt_int8;
 
 
 /**
- *  Zobristハッシュのシードを保持するテーブル
  *  Class containing the table for Zobrist hash.
  */
 struct Zobrist {
@@ -51,11 +50,6 @@ struct Zobrist {
 
 
 /**
- *  ナカデの急所を格納するクラス
- *     key: 空点のZobristハッシュ
- *     value: 急所の座標
- *  座標は盤中央からの相対座標.
- *
  *  Class containing Nakade patterns and their vitals.
  *     key: Zobrist hash of blank vertexes.
  *     value: position of vital

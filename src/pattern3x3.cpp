@@ -17,13 +17,11 @@ std::string working_dir = "";
 
 
 /**
- *  ファイルからパターンパラメータを読み込む
  *  Import pattern parameters from prob_ptn.txt etc.
  */
 void ImportProbPtn3x3() {
 
-    // 1. パターン配列を初期化
-    //    Initialize all patterns.
+    // 1. Initialize all patterns.
     for (int j = 0; j < 65536; ++j) {
         for (int k = 0; k < 256; ++k) {
             for (int l=0;l<4; ++l) {
@@ -41,8 +39,7 @@ void ImportProbPtn3x3() {
 
     std::string dir_path = working_dir;
 
-    // 2. 3x3パターン
-    //    3x3 patterns.
+    // 2. 3x3 patterns.
     ss << dir_path << "prob_ptn3x3.txt";
     ifs.open(ss.str());
     if (ifs.fail()) cerr << "file could not be opened: prob_ptn3x3.txt" << endl;
@@ -72,8 +69,7 @@ void ImportProbPtn3x3() {
     }
     ifs.close();
 
-    // 3. responseパターン
-    //    Response pattern
+    // 3. Response pattern
     ss.str("");
     ss << dir_path << "prob_ptn_rsp.txt";
     ifs.open(ss.str());
@@ -96,8 +92,7 @@ void ImportProbPtn3x3() {
     }
     ifs.close();
 
-    // 4. 12点パターン
-    //    Extended 12 point pattern.
+    // 4. Extended 12 point pattern.
     ss.str("");
     ss << dir_path << "prob_ptn12.txt";
     ifs.open(ss.str());
