@@ -46,7 +46,7 @@
 #endif
 
 bool cfg_sgemm_exhaustive = false;
-const auto TUNER_FILE_LOCAL = std::string("gmz_opencl_tuning");
+const auto TUNER_FILE_LOCAL = std::string("opencl_tuning");
 constexpr auto MAX_ERROR = 1e-4f;
 
 using namespace Utils;

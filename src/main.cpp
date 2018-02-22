@@ -37,7 +37,7 @@ void ReadConfiguration(int argc, char **argv) {
     if (pos_filename != std::string::npos) {
         path_ = path_.substr(0, pos_filename + 1);
         // Use current directory if there is no configure file.
-        std::ifstream ifs(path_ + "gmz_config.txt");
+        std::ifstream ifs(path_ + "config.txt");
         if (ifs.is_open()) {
             working_dir = path_;
         }
@@ -45,7 +45,7 @@ void ReadConfiguration(int argc, char **argv) {
 
     ImportProbDist();
     ImportProbPtn3x3();
-    std::string config_path = working_dir + "gmz_config.txt";
+    std::string config_path = working_dir + "config.txt";
 
     for (int i = 0; i < argc; ++i) {
 

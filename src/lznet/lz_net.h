@@ -39,21 +39,16 @@ const float cfg_softmax_temp = 1.0f;
 
 class Network {
 public:
-    enum Ensemble {
-        DIRECT, RANDOM_ROTATION
-    };
     using BoardPlane = std::bitset<19*19>;
     using NNPlanes = std::vector<BoardPlane>;
     using Prob = std::array<double, EBVCNT>;
 
     static void get_policy_moves(std::vector<FeedTensor>& ft_list,
                                  std::vector<std::array<double,EBVCNT>>& prob_list,
-                                 Ensemble ensemble,
                                  int rotation = 8,
                                  bool skip_cache = true);
     static void get_value_moves(std::vector<FeedTensor>& ft_list,
                                 std::vector<float>& eval_list,
-                                Ensemble ensemble,
                                 int rotation = 8,
                                 bool skip_cache = true);
 

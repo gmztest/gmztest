@@ -40,7 +40,7 @@ void ImportProbPtn3x3() {
     std::string dir_path = working_dir;
 
     // 2. 3x3 patterns.
-    ss << dir_path << "prob_ptn3x3.txt";
+    ss << dir_path << "prob/prob_ptn3x3.txt";
     ifs.open(ss.str());
     if (ifs.fail()) cerr << "file could not be opened: prob_ptn3x3.txt" << endl;
 
@@ -71,7 +71,7 @@ void ImportProbPtn3x3() {
 
     // 3. Response pattern
     ss.str("");
-    ss << dir_path << "prob_ptn_rsp.txt";
+    ss << dir_path << "prob/prob_ptn_rsp.txt";
     ifs.open(ss.str());
     if (ifs.fail()) cerr << "file could not be opened: prob_ptn_rsp.txt" << endl;
 
@@ -94,7 +94,7 @@ void ImportProbPtn3x3() {
 
     // 4. Extended 12 point pattern.
     ss.str("");
-    ss << dir_path << "prob_ptn12.txt";
+    ss << dir_path << "prob/prob_ptn12.txt";
     ifs.open(ss.str());
     if (ifs.fail()) cerr << "file could not be opened: prob_ptn12.txt" << endl;
 

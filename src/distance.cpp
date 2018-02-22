@@ -66,7 +66,7 @@ int DistEdge(int v) {
  */
 void ImportProbDist() {
 
-    std::ifstream ifs(working_dir + "prob_dist.txt");
+    std::ifstream ifs(working_dir + "prob/prob_dist.txt");
     if (ifs.fail()) cerr << "file could not be opened: prob_dist.txt" << endl;
 
     for (int i = 0; i < 2; ++i) {

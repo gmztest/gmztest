@@ -813,7 +813,6 @@ int Network::rotate_nn_idx(const int vertex, int symmetry) {
 
 void Network::get_policy_moves(std::vector<FeedTensor>& ft_list,
                                std::vector<std::array<double,EBVCNT>>& prob_list,
-                               Ensemble ensemble,
                                int rotation,
                                bool skip_cache) {
     int ft_cnt = (int)ft_list.size();
@@ -829,17 +828,14 @@ void Network::get_policy_moves(std::vector<FeedTensor>& ft_list,
             // } 
         }
 
-        if (ensemble == DIRECT) {
+        if (rotation != 8) {
             assert(rotation >= 0 && rotation <= 7);
             Prob move_prob = get_policy_internal(ft_list[i], planes, rotation);
-            // debug_heatmap(move_prob);
             prob_list.push_back(move_prob);
         } else {
-            assert(ensemble == RANDOM_ROTATION);
             assert(rotation == 8);
             auto rand_rot = Random::get_Rng().randfix<8>();
             Prob move_prob = get_policy_internal(ft_list[i], planes, rand_rot);
-            // debug_heatmap(move_prob);
             prob_list.push_back(move_prob);
         }
     }
@@ -917,7 +913,6 @@ Network::Prob Network::get_policy_internal(const FeedTensor ft,
 
 void Network::get_value_moves(std::vector<FeedTensor>& ft_list,
                               std::vector<float>& eval_list,
-                              Ensemble ensemble,
                               int rotation,
                               bool skip_cache) {
     int ft_cnt = (int)ft_list.size();
@@ -933,11 +928,10 @@ void Network::get_value_moves(std::vector<FeedTensor>& ft_list,
             // } 
         }
 
-        if (ensemble == DIRECT) {
+        if (rotation != 8) {
             assert(rotation >= 0 && rotation <= 7);
             eval_list.push_back(get_value_internal(planes, rotation));
         } else {
-            assert(ensemble == RANDOM_ROTATION);
             assert(rotation == 8);
             auto rand_rot = Random::get_Rng().randfix<8>();
             eval_list.push_back(get_value_internal(planes, rand_rot));
@@ -1014,10 +1008,6 @@ void Network::tensor_to_plane(const FeedTensor ft, NNPlanes& planes) {
     const int gmz_black_offset = blacks_move ? 0 : 1;
     const int gmz_white_offset = blacks_move ? 1 : 0;
 
-    // myprintf("Black to move: %d\n", blacks_move);
-    // myprintf("black_offset: %d\n", black_offset);
-    // myprintf("white_offset: %d\n", white_offset);
-
     if (blacks_move) {
         black_to_move.set();
     } else {
@@ -1054,10 +1044,11 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
                 for (int c = 0; c < 19; ++c) {
                     float mv = ft.feature[b*19+c][a];
                     if (mv > 0.1) {
-                        myprintf("\033[41m%4.1f\033[0m", mv);
+                        myprintf("\033[41m%3.1f\033[0m", mv);
                     } else {
-                        myprintf("%4.1f", mv);
+                        myprintf("%3.1f", mv);
                     }
+                    myprintf(" ");
                 }
                 myprintf("\n");
             }
@@ -1072,10 +1063,11 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
                 for (int c = 0; c < 19; ++c) {
                     float mv = planes[a][b*19+c];
                     if (mv > 0.1) {
-                        myprintf("\033[41m%4.1f\033[0m", mv);
+                        myprintf("\033[41m%3.1f\033[0m", mv);
                     } else {
-                        myprintf("%4.1f", mv);
+                        myprintf("%3.1f", mv);
                     }
+                    myprintf(" ");
                 }
                 myprintf("\n");
             }
@@ -1090,10 +1082,11 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
             for (int j = 0; j < 19; ++j) {
                 float mp = direct_heatmap[rtoe[i * 19 + j]];
                 if (mp > 0.05) {
-                    myprintf("\033[41m%4.1f\033[0m", mp);
+                    myprintf("\033[41m%3.1f\033[0m", mp);
                 } else {
-                    myprintf("%4.1f", mp);
+                    myprintf("%3.1f", mp);
                 }
+                myprintf(" ");
             }
             myprintf("\n");
         }
@@ -1101,14 +1094,30 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
     }
 
     if (show_rmap) {
-        myprintf("Rotated Heatmap\n");
+        myprintf("Rotated Heatmap                             ");
+        myprintf("Ladder Feature\n");
+        myprintf("   A B C D E F G H J K L M N O P Q R S T    ");
+        myprintf("   A B C D E F G H J K L M N O P Q R S T\n");
         for (int i = 18; i >= 0; --i) {
+            myprintf("%2d ", i + 1);
             for (int j = 0; j < 19; ++j) {
-                float mp = move_prob[rtoe[i * 19 + j]];
-                if (mp > 0.05) {
-                    myprintf("\033[41m%4.1f\033[0m", mp);
+                int mp = 10 * move_prob[rtoe[i * 19 + j]];
+                if (mp > 0.5) {
+                    myprintf("%d ", mp);
                 } else {
-                    myprintf("%4.1f", mp);
+                    myprintf(". ");
+                }
+            }
+            myprintf("   %2d ", i + 1);
+            for (int k =0; k < 19; ++k) {
+                float lde = ft.feature[i*19+k][LADDERESC];
+                float ldc = ft.feature[i*19+k][LADDERCAP];
+                if (lde > 0.5) {
+                    myprintf("X ");
+                } else if (ldc > 0.5) {
+                    myprintf("O ");
+                } else {
+                    myprintf(". ");
                 }
             }
             myprintf("\n");
@@ -1118,6 +1127,6 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
 
     if (show_value) {
         float value = get_value_internal(planes, 0);
-        myprintf("original_value: %5.2f\n\n", value);
+        myprintf("Original Value: %5.2f\n\n", value);
     }
 }

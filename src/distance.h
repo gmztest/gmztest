@@ -12,4 +12,4 @@ extern std::array<std::array<std::array<double, 2>, 17>, 2> prob_dist;
 extern std::array<double, EBVCNT> prob_dist_base;
 extern std::string working_dir;
 
-//#define USE_SEMEAI
+#define USE_SEMEAI

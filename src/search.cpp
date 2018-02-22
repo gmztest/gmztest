@@ -853,7 +853,8 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
     } else {
         lambda = 1.0;
     }
-    cp = 0.4 + 0.6 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 0) / (16 - 0)));
+    // cp = 0.4 + 0.6 * std::min(1.0, std::max(0.0, ((double)b.move_cnt - 0) / (16 - 0)));
+    cp = 0.4;
 
     bool use_rollout = (lambda != 1.0);
 
@@ -865,12 +866,7 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
         std::vector<FeedTensor> ft_list;
         ft_list.push_back(ft);
 
-        // PolicyNet(sess_policy[0], ft_list, prob_list, policy_temp, sym_idx);
-        if (cfg_sym_idx == 8) {
-            Network::get_policy_moves(ft_list, prob_list, Network::Ensemble::RANDOM_ROTATION);
-        } else {
-            Network::get_policy_moves(ft_list, prob_list, Network::Ensemble::DIRECT, cfg_sym_idx);
-        }
+        Network::get_policy_moves(ft_list, prob_list, cfg_sym_idx);
         UpdateNodeProb(root_node_idx, prob_list[0]);
 
         if (cfg_debug) {
@@ -1216,12 +1212,8 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
                         ft_list.push_back(vque_th[i].ft);
                     }
                     std::vector<float> eval_list;
-                    // ValueNet(sess_value[gpu_idx], ft_list, eval_list, sym_idx);
-                    if (cfg_sym_idx == 8) {
-                        Network::get_value_moves(ft_list, eval_list, Network::Ensemble::RANDOM_ROTATION);
-                    } else {
-                        Network::get_value_moves(ft_list, eval_list, Network::Ensemble::DIRECT, cfg_sym_idx);
-                    }
+
+                    Network::get_value_moves(ft_list, eval_list, cfg_sym_idx);
                 
                     // d. Update all value information of the upstream nodes.
                     for (int i = 0; i < eval_cnt; ++i) {
@@ -1286,12 +1278,8 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
                 }
 
                 // c. Evaluate policy.
-                // PolicyNet(sess_policy[gpu_idx], ft_list, prob_list, policy_temp, sym_idx);
-                if (cfg_sym_idx == 8) {
-                    Network::get_policy_moves(ft_list, prob_list, Network::Ensemble::RANDOM_ROTATION);
-                } else {
-                    Network::get_policy_moves(ft_list, prob_list, Network::Ensemble::DIRECT, cfg_sym_idx);
-                }
+
+                Network::get_policy_moves(ft_list, prob_list, cfg_sym_idx);
 
                 // d. Update probability of nodes.
                 for (int i = 0; i < eval_cnt; ++i) {
