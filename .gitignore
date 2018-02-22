@@ -6,5 +6,5 @@ src/lznet/*.d
 src/lznet/*.o
 remotetest
 opencl_tuning
-*.txt
+af9.txt
 log
