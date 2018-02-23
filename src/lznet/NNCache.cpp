@@ -152,7 +152,7 @@ void NNCache::set_size_from_playouts(int max_playouts) {
 }
 
 void NNCache::dump_stats() {
-    Utils::myprintf("NNCache: %d/%d hits/lookups = %.1f%% hitrate, %d inserts, %u policy size, %u value size, %d collisions\n",
+    Utils::myprintf("NNCache: %d/%d hits/lookups = %.1f%% hitrate, %d inserts, %u policy, %u value, %d collisions\n",
         m_hits, m_lookups, 100. * m_hits / (m_lookups + 1),
         m_inserts, m_policy_cache.size(), m_value_cache.size(), m_collisions);
 }

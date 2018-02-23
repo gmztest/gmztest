@@ -150,7 +150,7 @@ int CallGTP() {
         }
         else if (FindStr(gtp_str, "name")) SendGTP("= GMZ\n\n");
         else if (FindStr(gtp_str, "protocol_version")) SendGTP("= 2\n\n");
-        else if (FindStr(gtp_str, "version")) SendGTP("= 0.1.0\n\n");
+        else if (FindStr(gtp_str, "version")) SendGTP("= 0.2.0\n\n");
         else if (FindStr(gtp_str, "boardsize")) {
             // Board size setting. (only corresponding to 19 size)
             // "=boardsize 19", "=boardsize 13", ...
