@@ -150,7 +150,7 @@ int CallGTP() {
         }
         else if (FindStr(gtp_str, "name")) SendGTP("= GMZ\n\n");
         else if (FindStr(gtp_str, "protocol_version")) SendGTP("= 2\n\n");
-        else if (FindStr(gtp_str, "version")) SendGTP("= 0.2.0\n\n");
+        else if (FindStr(gtp_str, "version")) SendGTP("= 0.2.1\n\n");
         else if (FindStr(gtp_str, "boardsize")) {
             // Board size setting. (only corresponding to 19 size)
             // "=boardsize 19", "=boardsize 13", ...
@@ -213,6 +213,7 @@ int CallGTP() {
         else if (FindStr(gtp_str, "time_left")) {
             // Set remaining time.
             // "=time_left B 944", "=time_left white 300", ...
+
             SplitString(gtp_str, " ", split_list);
             if (split_list[0] == "=") split_list.erase(split_list.begin());
 
@@ -233,7 +234,6 @@ int CallGTP() {
             // "=genmove b", "=genmove white", ...
 
             auto t1 = std::chrono::system_clock::now();
-            //cerr << "thinking...\n";
 
             pl = FindStr(gtp_str, "B", "b") ? 1 : 0;
             if (pl != b.my) {
