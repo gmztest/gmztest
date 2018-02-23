@@ -3,5 +3,6 @@ compiler: gcc
 dist: xenial
 os: linux
 before_install:
+  - sudo apt-get -qq update
   - sudo apt-get install -y libboost-all-dev libopenblas-dev opencl-headers ocl-icd-libopencl1 ocl-icd-opencl-dev zlib1g-dev
 script: cd ./src && make
