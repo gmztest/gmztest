@@ -4,7 +4,6 @@ src/*.d
 src/*.o
 src/lznet/*.d
 src/lznet/*.o
-remotetest
 opencl_tuning
-af9.txt
 log
+af9.txt

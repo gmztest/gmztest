@@ -46,11 +46,11 @@ public:
     static void get_policy_moves(std::vector<FeedTensor>& ft_list,
                                  std::vector<std::array<double,EBVCNT>>& prob_list,
                                  int rotation = 8,
-                                 bool skip_cache = true);
+                                 bool skip_cache = false);
     static void get_value_moves(std::vector<FeedTensor>& ft_list,
                                 std::vector<float>& eval_list,
                                 int rotation = 8,
-                                bool skip_cache = true);
+                                bool skip_cache = false);
 
     // File format version
     static constexpr auto FORMAT_VERSION = 1;

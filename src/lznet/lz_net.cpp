@@ -44,9 +44,7 @@
 #include "OpenCLScheduler.h"
 #endif
 
-// #include "GTP.h" // remove this and use configure file to point out the weight file name
-// #include "NNCache.h" // will not use cache now
-
+#include "NNCache.h"
 #include "Im2Col.h"
 #include "Random.h"
 #include "Utils.h"
@@ -818,26 +816,28 @@ void Network::get_policy_moves(std::vector<FeedTensor>& ft_list,
     int ft_cnt = (int)ft_list.size();
 
     for (int i = 0; i < ft_cnt; ++i) {
+        Prob move_prob;
         NNPlanes planes;
         tensor_to_plane(ft_list[i], planes);
 
         if (!skip_cache) {
-            // Now we don't use cache
-            // if (NNCache::get_NNCache().lookup(planes, result)) {
-            //     return result;
-            // } 
+            if (NNCache::get_NNCache().lookup_policy(planes, move_prob)) {
+                prob_list.push_back(move_prob);
+            } 
         }
 
         if (rotation != 8) {
             assert(rotation >= 0 && rotation <= 7);
-            Prob move_prob = get_policy_internal(ft_list[i], planes, rotation);
+            move_prob = get_policy_internal(ft_list[i], planes, rotation);
             prob_list.push_back(move_prob);
         } else {
             assert(rotation == 8);
             auto rand_rot = Random::get_Rng().randfix<8>();
-            Prob move_prob = get_policy_internal(ft_list[i], planes, rand_rot);
+            move_prob = get_policy_internal(ft_list[i], planes, rand_rot);
             prob_list.push_back(move_prob);
         }
+
+        NNCache::get_NNCache().insert_policy(planes, move_prob);
     }
 }
 
@@ -897,10 +897,6 @@ Network::Prob Network::get_policy_internal(const FeedTensor ft,
     move_prob.fill(0.0);
 
     for (int j = 0; j < BVCNT; ++j) {
-        // int v = rtoe[j];
-        // int rot_idx = rotate_nn_idx_table[rotation][j];
-        // float val = outputs[rot_idx];
-        // move_prob[v] = val;
         int v = rtoe[rotate_nn_idx_table[rotation][j]];
         float val = outputs[j];
         move_prob[v] = val;
@@ -918,24 +914,28 @@ void Network::get_value_moves(std::vector<FeedTensor>& ft_list,
     int ft_cnt = (int)ft_list.size();
 
     for (int i = 0; i < ft_cnt; ++i) {
+        float value;
         NNPlanes planes;
         tensor_to_plane(ft_list[i], planes);
 
         if (!skip_cache) {
-            // Now we don't use cache
-            // if (NNCache::get_NNCache().lookup(planes, result)) {
-            //     return result;
-            // } 
+            if (NNCache::get_NNCache().lookup_value(planes, value)) {
+                eval_list.push_back(value);
+            } 
         }
 
         if (rotation != 8) {
             assert(rotation >= 0 && rotation <= 7);
-            eval_list.push_back(get_value_internal(planes, rotation));
+            value = get_value_internal(planes, rotation);
+            eval_list.push_back(value);
         } else {
             assert(rotation == 8);
             auto rand_rot = Random::get_Rng().randfix<8>();
-            eval_list.push_back(get_value_internal(planes, rand_rot));
+            value = get_value_internal(planes, rand_rot);
+            eval_list.push_back(value);
         }
+
+        NNCache::get_NNCache().insert_value(planes, value);
     }
 }
 
@@ -1033,6 +1033,7 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
     bool show_dmap = false;
     bool show_rmap = true;
     bool show_value = true;
+    bool show_cache = true;
 
     NNPlanes planes;
     tensor_to_plane(ft, planes);
@@ -1128,5 +1129,9 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
     if (show_value) {
         float value = get_value_internal(planes, 0);
         myprintf("Original Value: %5.2f\n\n", value);
+    }
+
+    if (show_cache) {
+        NNCache::get_NNCache().dump_stats();
     }
 }

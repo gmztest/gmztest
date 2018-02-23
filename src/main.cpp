@@ -104,7 +104,6 @@ void ReadConfiguration(int argc, char **argv) {
         else if (key == "master") is_master = IsFlagOn(val);
         else if (key == "worker") is_worker = IsFlagOn(val);
         else if (key == "worker count") cfg_worker_cnt = stoi(val);
-        else if (key == "pb path") pb_dir = val;
         else if (key == "resume sgf path") resume_sgf_path = val;
         else if (key == "use pondering") use_pondering = IsFlagOn(val);
         else if (key == "weight file") cfg_weightsfile = val;
@@ -118,7 +117,6 @@ void ReadConfiguration(int argc, char **argv) {
     ifs.close();
 
     std::cerr << "configuration loaded.\n";
-    // if (self_match) SelfMatch();
 
 }
 

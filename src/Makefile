@@ -49,7 +49,7 @@ sources = board.cpp  distance.cpp  ladder.cpp  playout.cpp  sgf.cpp \
           board_simple.cpp  feed_tensor.cpp  main.cpp  print.cpp  \
           cluster.cpp  gtp.cpp  pattern3x3.cpp  search.cpp zobrist.cpp \
           lznet/lz_net.cpp  lznet/OpenCLScheduler.cpp  lznet/Tuner.cpp \
-          lznet/OpenCL.cpp  lznet/Random.cpp  lznet/Utils.cpp
+          lznet/OpenCL.cpp  lznet/Random.cpp  lznet/Utils.cpp lznet/NNCache.cpp
 objects = $(sources:.cpp=.o)
 deps = $(sources:%.cpp=%.d)
 

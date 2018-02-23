@@ -18,7 +18,7 @@ double cfg_byoyomi = 5;
 double cfg_emer_time = 15;
 int cfg_thread_cnt = 4;
 int cfg_gpu_cnt = 1;
-double cfg_komi = 7.5; //6.5;
+double cfg_komi = 7.5;
 
 bool self_match = false;
 bool is_master = false;
@@ -30,7 +30,6 @@ int cfg_sym_idx = 8;
 bool cfg_rollout = true;
 bool cfg_debug = false;
 std::string resume_sgf_path = "";
-std::string pb_dir = "";
 std::string cfg_weightsfile = "";
 
 #ifdef _WIN32
