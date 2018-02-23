@@ -1,4 +1,8 @@
 language: cpp
+sudo: required
 compiler: gcc
 os: linux
+before_install:
+  - apt-get -qq update
+  - apt-get install -y libboost-all-dev libopenblas-dev opencl-headers ocl-icd-libopencl1 ocl-icd-opencl-dev zlib1g-dev
 script: ./build.sh
