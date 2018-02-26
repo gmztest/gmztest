@@ -6,4 +6,4 @@ src/lznet/*.d
 src/lznet/*.o
 opencl_tuning
 log
-af9.txt
+20b.txt

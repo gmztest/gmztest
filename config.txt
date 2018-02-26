@@ -31,7 +31,7 @@
 
 ### LZ net ###
 -full tune =off
--weight file =af9.txt
--rollout =on
+-weight file =weights.txt
+-rollout =off
 -debug =on
 
