@@ -5,6 +5,9 @@
 #include "cluster.h"
 #include "search.h"
 
+#define NAME "= GMZ built on " __TIME__ " " __DATE__ "\n\n"
+#define VERSION "= 0.2.1\n\n"
+
 int CallGTP();
 
 extern bool save_log;

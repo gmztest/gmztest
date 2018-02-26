@@ -19,7 +19,7 @@
 
 ### File settings ###
 # Use 'self match' mode on console for debug.
--self match =on
+-self match =off
 -save log =on
 -resume sgf path =
 
