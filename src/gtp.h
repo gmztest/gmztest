@@ -5,7 +5,7 @@
 #include "cluster.h"
 #include "search.h"
 
-#define NAME "= GMZ built on " __TIME__ " " __DATE__ "\n\n"
+#define NAME "= GMZ built on " __DATE__ " " __TIME__ "\n\n"
 #define VERSION "= 0.2.1\n\n"
 
 int CallGTP();
