@@ -1128,7 +1128,7 @@ void Network::debug_heatmap(const FeedTensor ft, Prob move_prob) {
 
     if (show_value) {
         float value = get_value_internal(planes, 0);
-        myprintf("Original Value: %5.2f\n\n", value);
+        myprintf("Original Value: %5.2f\n", value);
     }
     
     if (show_cache) {

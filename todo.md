@@ -1,4 +1,4 @@
-## try different net configurations
+## Try different net configurations
 
 - [x] try resnet 60B128F  
 - [ ] test 40B128F & 20B128F  
@@ -12,7 +12,7 @@
 - the value net is not accurate enough (add some comparaison to see the different)  
 - the hand-crafted features of rollout, maybe more info can be found in pachi  
 
-## the 20block-256filter baseline
+## 20block-256filter baseline
 
 Find it [here](https://drive.google.com/open?id=1PSyfsDvXmtIrhUx4Gf6x7mGzDtwe4npr)
 

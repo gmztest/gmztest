@@ -877,6 +877,13 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
     std::vector<Child*> rc;
     SortChildren(pn, rc);
 
+    if (cfg_debug) {
+        Child* pc = rc[0];
+        string seq;
+        seq = BestSequence((int)pc->next_idx, (int)pc->move);
+        std::cerr << "BestSequence: " << seq << endl;
+    }
+
     // 7. Calculate the winning percentage of pc0.
     win_rate = BranchRate(rc[0]);
     int rc0_game_cnt = use_rollout? (int)rc[0]->rollout_cnt : (int)rc[0]->value_cnt;
@@ -895,7 +902,7 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
         if (rc0_game_cnt < 1000) {
             int v = pn->children[pn->prob_order[0]].move;
             if (is_errout) {
-                PrintLog(log_file, "move cnt=%d: emagency mode: left time=%.1f[sec], move=%s, prob=.1%f[%%]\n",
+                PrintLog(log_file, "move cnt=%d emagency mode: left time=%.1f[sec], move=%s, prob=.1%f[%%]\n",
                          b.move_cnt + 1, (double)left_time, CoordinateString(v).c_str(), pn->children[pn->prob_order[0]].prob * 100);
             }
             win_rate = 0.5;
@@ -921,7 +928,7 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
         if (stand_out || enough_game || almost_win) {
             // Skip search.
             if (is_errout) {
-                PrintLog(log_file, "move cnt=%d: left time=%.1f[sec]\n%d[nodes]\n",
+                PrintLog(log_file, "move cnt=%d left time=%.1f[sec]\n%d[nodes]\n",
                          b.move_cnt + 1, (double)left_time, node_cnt);
             }
         } else {
@@ -1007,7 +1014,7 @@ int Tree::SearchTree(Board& b, double time_limit, double& win_rate,
             auto t2 = std::chrono::system_clock::now();
             auto elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()/1000;
             if (is_errout) {
-                PrintLog(log_file, "move cnt=%d: left time=%.1f[sec]\n%d[nodes] %.1f[sec] %d[playouts] %.1f[pps/thread]\n",
+                PrintLog(log_file, "move cnt=%d left time=%.1f[sec]\n%d[nodes] %.1f[sec] %d[playouts] %.1f[pps/thread]\n",
                          b.move_cnt + 1,
                          std::max(0.0, (double)left_time - elapsed_time),
                          node_cnt,
@@ -1277,7 +1284,6 @@ void Tree::ThreadEvaluate(double time_limit, int gpu_idx, bool is_ponder) {
                 }
 
                 // c. Evaluate policy.
-
                 Network::get_policy_moves(ft_list, prob_list, cfg_sym_idx);
 
                 // d. Update probability of nodes.
@@ -1430,7 +1436,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost) {
 
     ost << "|move|count  |value|roll |prob |depth| best sequence" << endl;
 
-    for (int i = 0; i < std::min((int)pn->child_cnt, 10); ++i) {
+    for (int i = 0; i < std::min((int)pn->child_cnt, 15); ++i) {
 
         Child* pc = rc[i];
         int game_cnt = (lambda != 1.0) ? (int)pc->rollout_cnt : (int)pc->value_cnt;
@@ -1485,6 +1491,7 @@ void Tree::PrintChildInfo(int node_idx, int next_move, std::ostream& ost, bool i
     ost << "|move|count  |value|roll |prob |depth| best sequence" << endl;
 
     for (int i = -1; i < std::min((int)pn->child_cnt, 8); ++i) {
+
 
         Child* pc;
         if (i < 0) pc = rc[nc_idx];
