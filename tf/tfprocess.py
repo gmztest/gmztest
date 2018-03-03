@@ -50,12 +50,20 @@ class TFProcess:
     def __init__(self):
         # Network structure
         self.RESIDUAL_FILTERS = 128
-        self.RESIDUAL_BLOCKS = 6
+        self.RESIDUAL_BLOCKS = 60
+        self.LEARNING_RATE = 1e-2
+        # learning rate schedule
+        #   200-800k -> 1e-2 (plan changed)
+
+        #   400-600k -> 1e-3
+        #   600-700k -> 1e-4
+        #   700-800k -> 1e-5
+        #    >800k   -> 1e-5 (to test)
 
         # For exporting
         self.weights = []
 
-        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.75)
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.85)
         config = tf.ConfigProto(gpu_options=gpu_options)
         self.session = tf.Session(config=config)
 
@@ -102,7 +110,7 @@ class TFProcess:
         # You need to change the learning rate here if you are training
         # from a self-play training set, for example start with 0.005 instead.
         opt_op = tf.train.MomentumOptimizer(
-            learning_rate=0.05, momentum=0.9, use_nesterov=True)
+            learning_rate=self.LEARNING_RATE, momentum=0.9, use_nesterov=True)
 
         self.update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(self.update_ops):
