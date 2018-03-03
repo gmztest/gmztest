@@ -31,6 +31,6 @@
 
 ### LZ net ###
 -full tune =off
--weight file =weights.txt
+-weight file =../weights.txt
 -rollout =on
 -debug =on

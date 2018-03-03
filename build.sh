@@ -1,19 +1,23 @@
 #!/bin/bash
+aqfile="gmzaq"
+
 if [ $1 = "clean" ]
 then
-  rm gmztest
-  cd src
+  cd aq
+  rm gmzaq
+  cd aq_src
   make clean
-  cd ..
-else
-  cd src
+  cd ../..
+elif [ $1 = "aq" ] 
+then
+  cd aq/aq_src
   make
   cd ..
-  file="gmztest"
-  if [ -e $file ]
+  if [ -e $aqfile ]
   then
-    echo "GMZ ready"
+    echo "GMZ AQ ready"
   else
-    ln -s src/gmztest
+    ln -s aq_src/gmztest gmzaq
+    echo "GMA AQ linked"
   fi
 fi

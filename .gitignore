@@ -1,10 +1,18 @@
-gmztest
-src/gmztest
-src/*.d
-src/*.o
-src/lznet/*.d
-src/lznet/*.o
-opencl_tuning
+# Link file
+aq/gmzaq
+
+# Intermediate file
+aq/aq_src/gmztest
+aq/aq_src/*.d
+aq/aq_src/*.o
+aq/aq_src/lznet/*.d
+aq/aq_src/lznet/*.o
+
+# Tuning file
+aq/opencl_tuning
+
+# Log file
 log
-20b.txt
-af9.txt
+
+# Test weight file
+
