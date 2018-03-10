@@ -56,6 +56,8 @@ public:
     static constexpr auto FORMAT_VERSION = 1;
     static constexpr auto INPUT_MOVES = 8;
     static constexpr auto INPUT_CHANNELS = 2 * INPUT_MOVES + 2;
+    static constexpr auto OUTPUTS_POLICY = 2;
+    static constexpr auto OUTPUTS_VALUE = 1;
 
     // Winograd filter transformation changes 3x3 filters to 4x4
     static constexpr auto WINOGRAD_ALPHA = 4;
@@ -98,7 +100,9 @@ private:
     static int rotate_nn_idx(const int vertex, int symmetry);
 #if defined(USE_BLAS)
     static void forward_cpu(std::vector<float>& input,
-                            std::vector<float>& output);
+                            std::vector<float>& output_pol,
+                            std::vector<float>& output_val);
+
 #endif
     static float get_value_internal(NNPlanes& planes, int rotation);
     static Prob get_policy_internal(const FeedTensor ft, NNPlanes& planes, int rotation);

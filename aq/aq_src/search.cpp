@@ -1436,7 +1436,7 @@ void Tree::PrintChildInfo(int node_idx, std::ostream& ost) {
 
     ost << "|move|count  |value|roll |prob |depth| best sequence" << endl;
 
-    for (int i = 0; i < std::min((int)pn->child_cnt, 15); ++i) {
+    for (int i = 0; i < std::min((int)pn->child_cnt, 10); ++i) {
 
         Child* pc = rc[i];
         int game_cnt = (lambda != 1.0) ? (int)pc->rollout_cnt : (int)pc->value_cnt;

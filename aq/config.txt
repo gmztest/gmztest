@@ -6,7 +6,7 @@
 
 ### Time contorol setting ###
 -main time[sec] =0
--byoyomi[sec] =15
+-byoyomi[sec] =5
 -emergency time[sec] =15
 
 ### Thinking setting ###

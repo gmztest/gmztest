@@ -22,8 +22,8 @@
 #include <climits>
 #include <cstdint>
 #include <thread>
+#include <random>
 
-// #include "GTP.h"
 #include "Utils.h"
 
 Random& Random::get_Rng(void) {
@@ -32,14 +32,10 @@ Random& Random::get_Rng(void) {
 }
 
 Random::Random(std::uint64_t seed) {
-    std::uint64_t seed2 = std::chrono::high_resolution_clock::
-        now().time_since_epoch().count();
-    std::uint64_t cfg_rng_seed = seed2;
-
     if (seed == 0) {
         size_t thread_id =
             std::hash<std::thread::id>()(std::this_thread::get_id());
-        seedrandom(cfg_rng_seed ^ (std::uint64_t)thread_id);
+        seedrandom((std::uint64_t)thread_id);
     } else {
         seedrandom(seed);
     }
@@ -60,16 +56,13 @@ std::uint64_t Random::gen(void) {
     return result;
 }
 
-std::uint16_t Random::randuint16(const uint16_t max) {
-    return ((gen() >> 48) * max) >> 16;
+std::uint64_t Random::randuint64(const uint64_t max) {
+    const uint64_t inclusive_max = max - 1;
+    return std::uniform_int_distribution<uint64_t>{0, inclusive_max}(*this);
 }
 
-std::uint32_t Random::randuint32(const uint32_t max) {
-    return ((gen() >> 32) * (std::uint64_t)max) >> 32;
-}
-
-std::uint32_t Random::randuint32() {
-    return gen() >> 32;
+std::uint64_t Random::randuint64() {
+    return gen();
 }
 
 static std::uint64_t splitmix64(std::uint64_t z) {
@@ -87,10 +80,3 @@ void Random::seedrandom(std::uint64_t seed) {
     m_s[1] = splitmix64(m_s[0]);
 }
 
-float Random::randflt(void) {
-    // We need a 23 bit mantissa + implicit 1 bit = 24 bit number
-    // starting from a 64 bit random.
-    constexpr float umax = 1.0f / (UINT32_C(1) << 24);
-    std::uint32_t num = gen() >> 40;
-    return ((float)num) * umax;
-}
